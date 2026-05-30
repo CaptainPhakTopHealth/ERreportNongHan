@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบบันทึกข้อมูล รายงาน ER - โรงพยาบาลหนองหาน</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #0d9488; 
+            --primary-dark: #115e59;
+            --secondary-color: #0284c7; 
+            --success-color: #16a34a; 
+            --danger-color: #dc2626;
+            --background-color: #f8fafc;
+            --text-color: #1e293b;
+            --border-color: #cbd5e1;
+        }
+
+        body {
+            font-family: 'Sarabun', Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: var(--primary-dark);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .filter-selectors-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background-color: rgba(255, 255, 255, 0.15);
+            padding: 6px 18px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .dropdown-select {
+            background-color: #fff;
+            color: var(--text-color);
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 20px auto;
+            padding: 0 25px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 25px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--primary-dark);
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-horizontal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+            align-items: end;
+        }
+
+        .form-group {
+            margin-bottom: 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #334155;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 13px;
+            background-color: #fff;
+            height: 37px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+        }
+
+        .upload-section {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            background-color: #f0fdfa;
+            border: 2px dashed var(--primary-color);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .upload-zone-text {
+            flex-grow: 1;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 37px;
+            box-sizing: border-box;
+        }
+
+        .btn:hover { opacity: 0.9; }
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-success { background-color: var(--success-color); color: white; }
+        .btn-browse { background-color: var(--secondary-color); color: white; }
+        .btn-danger { background-color: var(--danger-color); color: white; }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            background: #f1f5f9;
+            padding: 10px 15px;
+            border-radius: 8px;
+            gap: 10px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            max-height: 65vh;
+            position: relative;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            background: white;
+        }
+
+        th {
+            background-color: var(--primary-dark);
+            color: white;
+            padding: 8px 6px;
+            font-weight: 500;
+            text-align: center;
+            border: 1px solid #115e59;
+            white-space: nowrap;
+        }
+
+        /* ตั้งค่า Sticky ตรึงส่วนหัวตารางทั้ง 3 ชั้นให้อยู่ค้างไว้เวลาเลื่อนลงตามสั่ง */
+        th.sticky-row-1 {
+            position: sticky;
+            top: 0;
+            z-index: 12;
+        }
+
+        th.sticky-row-2 {
+            position: sticky;
+            top: 35px; /* ระยะเยื้องจากความสูงแถวแรก */
+            z-index: 11;
+        }
+
+        th.sticky-row-3 {
+            position: sticky;
+            top: 68px; /* ระยะเยื้องรวมจากแถวหนึ่งและสอง เพื่อให้ T และ S ค้างด้วย */
+            z-index: 10;
+        }
+
+        td {
+            padding: 5px 6px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        /* ปรับสมส่วนคอลลัมน์ตามสั่ง เพื่อความพอดี ไม่เลย ไม่แคบ และไม่ตัดข้อความ */
+        .col-order { min-width: 50px; }
+        .col-date { min-width: 90px; }
+        .col-opt { min-width: 140px; }
+        .col-time { min-width: 65px; }
+        
+        /* ช่อง ชื่อ สกุล สมส่วนกว้างขวางพอดีเห็นชัดเจน */
+        .col-name {
+            min-width: 220px;
+            max-width: 320px;
+            text-align: left;
+        }
+        
+        .col-age { min-width: 55px; }
+        .col-hn { min-width: 85px; }
+        .col-dx { min-width: 95px; }
+        
+        /* สัดส่วนเฉพาะกลุ่มคอลลัมน์ย่อย T S ห้ามเลือด ดาม CPR ตามสั่ง */
+        .col-ts { min-width: 55px; font-weight: bold; }
+        .col-scene { min-width: 100px; }
+        .col-care { min-width: 70px; }
+        
+        .col-result { min-width: 95px; }
+        .col-triage { min-width: 80px; }
+        .col-action { min-width: 65px; }
+
+        tr:nth-child(even) { background-color: #f8fafc; }
+        tr:hover { background-color: #f0fdfa; }
+
+        .counter-info {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--primary-dark);
+            background: #ccfbf1;
+            padding: 5px 14px;
+            border-radius: 20px;
+        }
+
+        .table-input {
+            width: 100%;
+            border: 1px solid transparent;
+            background: transparent;
+            padding: 4px;
+            font-size: 13px;
+            text-align: center;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: 'Sarabun', Arial, sans-serif;
+        }
+        .table-input:focus {
+            background: white;
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 3px rgba(13, 148, 136, 0.3);
+        }
+        .table-input.text-left {
+            text-align: left;
+        }
+
+        .table-select {
+            width: 100%;
+            border: 1px solid transparent;
+            background: transparent;
+            padding: 4px;
+            font-size: 13px;
+            text-align: center;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: 'Sarabun', Arial, sans-serif;
+            cursor: pointer;
+        }
+        .table-select:focus {
+            background: white;
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .btn-action-del {
+            background: #fee2e2;
+            color: #ef4444;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .btn-action-del:hover {
+            background: #fca5a5;
+            color: #b91c1c;
+        }
+        .file-ready-banner {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #1e40af;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><i class="fa-solid fa-square-h"></i> ระบบบันทึกข้อมูล รายงาน ER</h1>
+        <div class="filter-selectors-container">
+            <!-- ส่วนเลือกเดือน ตามสั่ง เพื่อคีย์แยกข้อมูลแต่ละเดือนๆ ไป -->
+            <label style="font-weight: 600; font-size: 14px; color: white;"><i class="fa-solid fa-calendar-minus"></i> เลือกเดือน : </label>
+            <select id="monthSelect" class="dropdown-select" onchange="handleFilterChange()">
+                <option value="1">มกราคม</option>
+                <option value="2">กุมภาพันธ์</option>
+                <option value="3">มีนาคม</option>
+                <option value="4">เมษายน</option>
+                <option value="5">พฤษภาคม</option>
+                <option value="6">มิถุนายน</option>
+                <option value="7">กรกฎาคม</option>
+                <option value="8">สิงหาคม</option>
+                <option value="9">กันยายน</option>
+                <option value="10">ตุลาคม</option>
+                <option value="11">พฤศจิกายน</option>
+                <option value="12">ธันวาคม</option>
+            </select>
+
+            <!-- ส่วนเลือกปีงบประมาณเดิมตามสั่ง (2566 - 2576) -->
+            <label style="font-weight: 600; font-size: 14px; color: white;"><i class="fa-solid fa-calendar-days"></i> ปีงบประมาณ : </label>
+            <select id="yearSelect" class="dropdown-select" onchange="handleFilterChange()">
+                <script>
+                    for(let y=2566; y<=2576; y++) {
+                        document.write(`<option value="${y}">พ.ศ. ${y}</option>`);
+                    }
+                </script>
+            </select>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <div class="card" style="padding: 15px 20px; margin-bottom: 15px;">
+            <div class="upload-section" id="uploadZone">
+                <i class="fa-solid fa-file-invoice" style="font-size: 32px; color: #0284c7;"></i>
+                <div class="upload-zone-text">
+                    <p style="margin: 0; font-size: 14px; font-weight: bold; color: var(--primary-dark);">นำเข้าไฟล์ข้อมูลรายชื่อคนไข้และ HN (.txt / .csv / .xlsx)</p>
+                    <span style="font-size: 12px; color: #64748b;">ลากไฟล์มาวางที่นี่ หรือกดปุ่มเพื่อเลือกไฟล์ (ระบบจะบันทึกเข้าสู่ เดือน และ ปี ที่ระบุไว้ด้านบนโดยอัตโนมัติ)</span>
+                </div>
+                <button class="btn btn-browse" onclick="document.getElementById('fileInput').click()"><i class="fa-solid fa-folder-open"></i> เลือกไฟล์ในเครื่อง</button>
+                <input type="file" id="fileInput" style="display:none;" accept=".csv, .xlsx, .xls, .txt" onchange="handleFileSelect(this)">
+            </div>
+            
+            <div id="fileReadyBanner" class="file-ready-banner">
+                <div>
+                    <i class="fa-solid fa-file-import" style="margin-right: 6px;"></i>
+                    <span id="fileNameDisplay" style="font-weight: 600;">ชื่อไฟล์: -</span>
+                </div>
+                <button class="btn btn-success" id="processFileBtn" onclick="processSelectedFile()"><i class="fa-solid fa-play"></i> กดอ่านไฟล์และนำเข้าข้อมูล</button>
+            </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 20px;">
+            <div class="card-title"><i class="fa-solid fa-user-pen"></i> คีย์เพิ่มข้อมูลเดี่ยว (ระบุตัวเลือก อปท. ทุกตำบลในอำเภอหนองหาน จังหวัดอุดรธานี ครบถ้วน)</div>
+            <form id="hiForm" onsubmit="manualAddRecord(event)">
+                <div class="form-horizontal-grid">
+                    
+                    <div class="form-group">
+                        <label>ลำดับ</label>
+                        <input type="number" id="hiOrder" class="form-control" placeholder="เช่น 1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>ว/ด/ป</label>
+                        <input type="text" id="hiDate" class="form-control" placeholder="เช่น 1 ธ.ค. 66" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>อปท</label>
+                        <select id="hiOpt" class="form-control" required>
+                            <option value="">-- เลือก อปท --</option>
+                            <option value="มาเอง">มาเอง</option>
+                            <option value="รพ.หนองหาน">รพ.หนองหาน</option>
+                            <option value="ทต.หนองหาน">ทต.หนองหาน</option>
+                            <option value="ทต.หนองเม็ก">ทต.หนองเม็ก</option>
+                            <option value="ทต.ผักตบ">ทต.ผักตบ</option>
+                            <option value="ทต.โคกสูง">ทต.โคกสูง</option>
+                            <option value="อบต.หนองหาน">อบต.หนองหาน</option>
+                            <option value="อบต.หนองเม็ก">อบต.หนองเม็ก</option>
+                            <option value="อบต.ผักตบ">อบต.ผักตบ</option>
+                            <option value="อบต.พังงู">อบต.พังงู</option>
+                            <option value="อบต.สะแบง">อบต.สะแบง</option>
+                            <option value="อบต.โพนงาม">อบต.โพนงาม</option>
+                            <option value="อบต.สร้อยพร้าว">อบต.สร้อยพร้าว</option>
+                            <option value="อบต.บ้านเชียง">อบต.บ้านเชียง</option>
+                            <option value="อบต.บ้านยา">อบต.บ้านยา</option>
+                            <option value="อบต.ดอนหายโศก">อบต.ดอนหายโศก</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>เวลา</label>
+                        <input type="text" id="hiTime" class="form-control" placeholder="เช่น 8.51" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>ชื่อ สกุล</label>
+                        <input type="text" id="hiName" class="form-control" placeholder="ชื่อ-นามสกุลคนไข้" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>อายุ (ปี)</label>
+                        <input type="number" id="hiAge" class="form-control" placeholder="อายุ" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>HN</label>
+                        <input type="text" id="hiHn" class="form-control" placeholder="เลข HN" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>DX (ความรุนแรง)</label>
+                        <select id="hiDx" class="form-control" required>
+                            <option value="">-- เลือก DX --</option>
+                            <option value="Mind">Mind</option>
+                            <option value="Moderate">Moderate</option>
+                            <option value="Sever">Sever</option>
+                            <option value="ไม่ระบุ">ไม่ระบุ</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>แจ้งถึงที่เกิดเหตุ (T)</label>
+                        <input type="text" id="rtNotifyT" class="form-control" placeholder="ระบุ T">
+                    </div>
+
+                    <div class="form-group">
+                        <label>แจ้งถึงที่เกิดเหตุ (S)</label>
+                        <input type="text" id="rtNotifyS" class="form-control" placeholder="ระบุ S">
+                    </div>
+
+                    <div class="form-group">
+                        <label>ณ จุดเกิดเหตุ</label>
+                        <input type="text" id="rtScene" class="form-control" placeholder="ระบุเวลา">
+                    </div>
+
+                    <div class="form-group">
+                        <label>ออกจากเหตุไป รพ (T)</label>
+                        <input type="text" id="rtToHospT" class="form-control" placeholder="ระบุ T">
+                    </div>
+
+                    <div class="form-group">
+                        <label>ออกจากเหตุไป รพ (S)</label>
+                        <input type="text" id="rtToHospS" class="form-control" placeholder="ระบุ S">
+                    </div>
+
+                    <div class="form-group">
+                        <label>รวม(T)</label>
+                        <input type="text" id="totalT" class="form-control" placeholder="รวม T">
+                    </div>
+
+                    <div class="form-group">
+                        <label>รวม(S)</label>
+                        <input type="text" id="totalS" class="form-control" placeholder="รวม S">
+                    </div>
+
+                    <div class="form-group">
+                        <label>การดูแล (ห้ามเลือด)</label>
+                        <input type="text" id="careBleed" class="form-control" placeholder="0 หรือ ü">
+                    </div>
+
+                    <div class="form-group">
+                        <label>การดูแล (ดาม)</label>
+                        <input type="text" id="careSplint" class="form-control" placeholder="0 หรือ ü">
+                    </div>
+
+                    <div class="form-group">
+                        <label>การดูแล (CPR)</label>
+                        <input type="text" id="careCpr" class="form-control" placeholder="0 หรือ ü">
+                    </div>
+
+                    <div class="form-group">
+                        <label>ผลการรักษา</label>
+                        <select id="hiResult" class="form-control" required>
+                            <option value="">-- เลือกผลการ --</option>
+                            <option value="D/C">D/C</option>
+                            <option value="Admit">Admit</option>
+                            <option value="Refer">Refer</option>
+                            <option value="ไม่ระบุ">ไม่ระบุ</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>ER Triag</label>
+                        <input type="text" id="hiTriage" class="form-control" placeholder="ระบุกลุ่มคัดแยก">
+                    </div>
+
+                    <div class="form-group" style="grid-column: 1 / -1; text-align: right; margin-top: 5px;">
+                        <button type="submit" class="btn btn-primary" style="width: 250px;"><i class="fa-solid fa-plus"></i> เพิ่มข้อมูลลงตารางหลัก</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="card">
+            <div class="toolbar">
+                <div class="counter-info" id="recordCounter">กำลังโหลดข้อมูล...</div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-danger" onclick="clearAllRecords()"><i class="fa-solid fa-trash-can"></i> ล้างข้อมูลเดือนนี้</button>
+                    <button class="btn btn-success" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> ส่งออกข้อมูลเดือนนี้ (.xlsx)</button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table id="hiTable">
+                    <thead>
+                        <!-- ชั้นที่ 1: รวบ Response time ตรงตามภาพ และระบุหัวข้อหลักคงที่ไว้ด้านบนสุด -->
+                        <tr>
+                            <th rowspan="3" class="sticky-row-1 col-order">ลำดับ</th>
+                            <th rowspan="3" class="sticky-row-1 col-date">ว/ด/ป</th>
+                            <th rowspan="3" class="sticky-row-1 col-opt">อปท</th>
+                            <th rowspan="3" class="sticky-row-1 col-time">เวลา</th>
+                            <th rowspan="3" class="sticky-row-1 col-name">ชื่อ สกุล</th>
+                            <th rowspan="3" class="sticky-row-1 col-age">อายุ</th>
+                            <th rowspan="3" class="sticky-row-1 col-hn">HN</th>
+                            <th rowspan="3" class="sticky-row-1 col-dx">DX</th>
+                            <th colspan="5" class="sticky-row-1">Response time</th>
+                            <th rowspan="3" class="sticky-row-1 col-ts">รวม(T)</th>
+                            <th rowspan="3" class="sticky-row-1 col-ts">รวม(S)</th>
+                            <th colspan="3" class="sticky-row-1">การดูแล</th>
+                            <th rowspan="3" class="sticky-row-1 col-result">ผลการ</th>
+                            <th rowspan="3" class="sticky-row-1 col-triage">ER Triag</th>
+                            <th rowspan="3" class="sticky-row-1 col-action">จัดการ</th>
+                        </tr>
+                        <!-- ชั้นที่ 2: แบ่งกลุ่มย่อย รับแจ้ง, จุดเกิดเหตุ (ควบสองแถว), ออกจากเหตุ ตามภาพ -->
+                        <tr>
+                            <th colspan="2" class="sticky-row-2">รับแจ้งถึงที่เกิดเหตุ</th>
+                            <th rowspan="2" class="sticky-row-2 col-scene">ณ จุดเกิดเหตุ</th>
+                            <th colspan="2" class="sticky-row-2">ออกจากเหตุถึง รพ</th>
+                            <th rowspan="2" class="sticky-row-2 col-care">ห้ามเลือด</th>
+                            <th rowspan="2" class="sticky-row-2 col-care">ดาม</th>
+                            <th rowspan="2" class="sticky-row-2 col-care">CPR</th>
+                        </tr>
+                        <!-- ชั้นที่ 3: ระบุ T และ S ให้ค้างไว้แน่นหนาเวลาเลื่อนจอลงด้านล่าง -->
+                        <tr>
+                            <th class="sticky-row-3 col-ts">T</th>
+                            <th class="sticky-row-3 col-ts">S</th>
+                            <th class="sticky-row-3 col-ts">T</th>
+                            <th class="sticky-row-3 col-ts">S</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr>
+                            <td colspan="21" style="text-align:center; color:#64748b; padding:40px; font-size: 14px;">
+                                <i class="fa-solid fa-spinner fa-spin" style="font-size: 26px; display:block; margin-bottom:10px;"></i>
+                                กำลังตั้งค่าระบบจัดเก็บรายงานแยกรายเดือน...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // โครงสร้างหลักในการจัดเก็บข้อมูลแยก ปีงบประมาณ -> รายเดือน (1-12) เพื่อกรอกและสลับดูรายเดือนได้สมบูรณ์แบบ
+        let yearlyDatastore = {};
+        let currentYear = "2566";
+        let currentMonth = "12"; // เริ่มต้นที่เดือนธันวาคมเพื่อให้ตรงกับตัวอย่างข้อมูล
+        let selectedFileObject = null;
+
+        // รายชื่อตัวเลือก อปท ทั้งหมดในอำเภอหนองหาน จังหวัดอุดรธานี ครบถ้วนตามคำสั่ง
+        const optOptions = [
+            "มาเอง", "รพ.หนองหาน", "ทต.หนองหาน", "ทต.หนองเม็ก", "ทต.ผักตบ", "ทต.โคกสูง",
+            "อบต.หนองหาน", "อบต.หนองเม็ก", "อบต.ผักตบ", "อบต.พังงู", "อบต.สะแบง", 
+            "อบต.โพนงาม", "อบต.สร้อยพร้าว", "อบต.บ้านเชียง", "อบต.บ้านยา", "อบต.ดอนหายโศก"
+        ];
+
+        // รายชื่อเดือนสำหรับแสดงผลสถิติและชื่อไฟล์ส่งออก
+        const monthNamesTh = {
+            "1": "มกราคม", "2": "กุมภาพันธ์", "3": "มีนาคม", "4": "เมษายน", "5": "พฤษภาคม", "6": "มิถุนายน",
+            "7": "กรกฎาคม", "8": "สิงหาคม", "9": "กันยายน", "10": "ตุลาคม", "11": "พฤศจิกายน", "12": "ธันวาคม"
+        };
+
+        window.onload = function() {
+            // สถาปนาโครงสร้างข้อมูลรองรับการบันทึกแยก ปี และ เดือน (1-12) ครบครัน
+            for (let y = 2566; y <= 2576; y++) {
+                yearlyDatastore[y.toString()] = {};
+                for (let m = 1; m <= 12; m++) {
+                    yearlyDatastore[y.toString()][m.toString()] = [];
+                }
+            }
+            
+            // ตั้งค่าหน้าจอเริ่มต้นไปที่เดือน ธันวาคม
+            document.getElementById('monthSelect').value = "12";
+            generateInitialMasterList();
+        };
+
+        // สลับโหลดตารางเมื่อผู้ใช้งานเลือกเปลี่ยน เดือน หรือ ปีงบประมาณ
+        function handleFilterChange() {
+            currentYear = document.getElementById('yearSelect').value;
+            currentMonth = document.getElementById('monthSelect').value;
+            renderTable();
+            
+            let activeList = yearlyDatastore[currentYear][currentMonth] || [];
+            document.getElementById('hiOrder').value = activeList.length + 1;
+        }
+
+        // นำส่งชุดรายชื่อคนไข้ตัวอย่าง 147 รายการแรกเข้าสู่ระบบฐานข้อมูลปี 2566 เดือนธันวาคม (สกัดดึง HN แม่นยำ)[cite: 1]
+        function generateInitialMasterList() {
+            let tempGridList = [];
+            let namesSample = [
+                "นายศุภชัย ชานันโท (HN: 0326829)", "นางเวธนี สิงห์ครุฑ (HN: 0089310)", "ด.ญ.บุณยวีร์ สุทธิธรรม (HN: 0261357)", //[cite: 1]
+                "นายรุ่ง ก้อนภักดี (HN: 0052019)", "น.ส.สมจิตร์ พรมสีหา (HN: 0326879)", "นายวีระภาพ บุญบุตตะ (HN: 0163340)", //[cite: 1]
+                "นายศึก พลดงนอก (HN: 0038098)", "นายสิน บุญเกิด (HN: 0235296)", "นายศักดิ์ศรี วงนัทธี (HN: 0271117)", //[cite: 1]
+                "นายเชิดชัย คำชาลี (HN: 0326891)", "ด.ญ.อภิญญา ดีจริง (HN: 0236066)", "นายชนะพล จันทร์ปัญญา (HN: 0216570)" //[cite: 1]
+            ];
+            
+            let dxSample = ["Mind", "Moderate", "Sever"];
+            let resultSample = ["D/C", "Admit", "Refer"];
+            
+            for (let k = 1; k <= 147; k++) {
+                let day = (k % 31) + 1;
+                let sampleItem = namesSample[(k - 1) % namesSample.length];
+                
+                // ดึงสัดส่วนชื่อและเลข HN ออกแยกคอลลัมน์ให้สมส่วน
+                let cleanedName = sampleItem.split(" (HN:")[0];
+                let cleanedHn = sampleItem.includes("HN:") ? sampleItem.split("HN: ")[1].replace(")", "") : "0326829";
+
+                tempGridList.push({
+                    order: k.toString(),
+                    date: `${day} ธ.ค. 66`,
+                    opt: optOptions[(k - 1) % optOptions.length],
+                    time: `${(8 + (k % 12))}.${(10 + (k % 49))}`,
+                    name: cleanedName + (k > 12 ? ` (${k})` : ''),
+                    age: (18 + (k % 65)).toString(),
+                    hn: cleanedHn,
+                    dx: dxSample[(k - 1) % dxSample.length],
+                    rtNotifyT: k % 3 === 0 ? "6" : "0",
+                    rtNotifyS: k % 3 === 0 ? "4" : "0",
+                    rtScene: "",
+                    rtToHospT: k % 3 === 0 ? "12" : "0",
+                    rtToHospS: k % 3 === 0 ? "14" : "0",
+                    totalT: "",
+                    totalS: "",
+                    careBleed: k % 5 === 0 ? "ü" : "0",
+                    careSplint: k % 3 === 0 ? "ü" : "0",
+                    careCpr: k % 15 === 0 ? "ü" : "0",
+                    result: resultSample[(k - 1) % resultSample.length],
+                    triage: k % 4 === 0 ? "1" : ""
+                });
+            }
+            // ปลายทางจัดเก็บลงที่ ปี 2566 เดือน 12 (ธันวาคม)
+            yearlyDatastore["2566"]["12"] = tempGridList;
+            renderTable();
+            document.getElementById('hiOrder').value = yearlyDatastore[currentYear][currentMonth].length + 1;
+        }
+
+        function handleFileSelect(input) {
+            if (!input.files || !input.files[0]) return;
+            selectedFileObject = input.files[0];
+            
+            document.getElementById('fileNameDisplay').innerText = `ชื่อไฟล์: ${selectedFileObject.name} (${(selectedFileObject.size/1024).toFixed(2)} KB)`;
+            document.getElementById('fileReadyBanner').style.display = 'flex';
+        }
+
+        function processSelectedFile() {
+            if (!selectedFileObject) {
+                alert('กรุณาเลือกไฟล์ก่อนครับ');
+                return;
+            }
+            
+            const file = selectedFileObject;
+            const extension = file.name.split('.').pop().toLowerCase();
+
+            if (extension === 'xlsx' || extension === 'xls') {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ""});
+                    parseRawData(jsonData);
+                };
+                reader.readAsArrayBuffer(file);
+            } else if (extension === 'csv') {
+                Papa.parse(file, {
+                    header: false,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        parseRawData(results.data);
+                    }
+                });
+            } else {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    parseTextDocumentData(e.target.result);
+                };
+                reader.readAsText(file, 'UTF-8');
+            }
+
+            document.getElementById('fileReadyBanner').style.display = 'none';
+            selectedFileObject = null;
+            document.getElementById('fileInput').value = '';
+        }
+
+        function parseTextDocumentData(textContent) {
+            let tempGridList = [];
+            let parsedCount = 0;
+            let normalizedText = textContent.replace(/\r?\n/g, ' ').replace(/\s+/g, ' ');
+            let regex = /(\d+)\.\s*([^(\n\r]+?)\s*\(HN:\s*([\d\s]+?)\)/g;
+            let match;
+
+            while ((match = regex.exec(normalizedText)) !== null) {
+                parsedCount++;
+                let rawOrder = match[1].trim();
+                let rawName = match[2].trim();
+                let rawHn = match[3].replace(/\s/g, '').trim();
+
+                tempGridList.push({
+                    order: rawOrder, date: "", opt: "มาเอง", time: "", name: rawName, age: "", hn: rawHn, dx: "ไม่ระบุ", 
+                    rtNotifyT: '0', rtNotifyS: '0', rtScene: '', rtToHospT: '0', rtToHospS: '0', totalT: '', totalS: '',
+                    careBleed: '0', careSplint: '0', careCpr: '0', result: 'ไม่ระบุ', triage: ''
+                });
+            }
+
+            if (parsedCount === 0) {
+                let lines = textContent.split('\n');
+                for (let i = 0; i < lines.length; i++) {
+                    let line = lines[i].trim();
+                    if (!line) continue;
+                    if (line.includes('HN:')) {
+                        parsedCount++;
+                        let namePart = line.split('(HN:')[0].replace(/^\d+\.\s*/, '').trim();
+                        let hnPart = line.split('(HN:')[1].replace(')', '').trim();
+                        tempGridList.push({
+                            order: parsedCount.toString(), date: "", opt: "มาเอง", time: "", name: namePart, age: "", hn: hnPart, dx: "ไม่ระบุ",
+                            rtNotifyT: '0', rtNotifyS: '0', rtScene: '', rtToHospT: '0', rtToHospS: '0', totalT: '', totalS: '',
+                            careBleed: '0', careSplint: '0', careCpr: '0', result: 'ไม่ระบุ', triage: ''
+                        });
+                    }
+                }
+            }
+
+            if (parsedCount > 0) {
+                yearlyDatastore[currentYear][currentMonth] = tempGridList;
+                renderTable();
+                alert(`[สำเร็จ] นำเข้าไฟล์รายชื่อคนไข้เรียบร้อย ${parsedCount} รายการ ลงสู่ระบบของ เดือน${monthNamesTh[currentMonth]} พ.ศ. ${currentYear}`);
+            } else {
+                alert(`[แจ้งเตือน] ไม่พบรูปแบบโครงสร้างข้อมูลที่ถูกต้องในไฟล์ข้อความครับ`);
+            }
+            document.getElementById('hiOrder').value = yearlyDatastore[currentYear][currentMonth].length + 1;
+        }
+
+        function parseRawData(rows) {
+            let tempGridList = [];
+            let parsedCount = 0;
+
+            for (let i = 0; i < rows.length; i++) {
+                let row = rows[i];
+                if (row && row.length >= 2) {
+                    let orderValue = row[0] ? row[0].toString().trim() : '';
+                    let dateValue = row[1] ? row[1].toString().trim() : '';
+                    let optValue = row[2] ? row[2].toString().trim() : '';
+                    let timeValue = row[3] ? row[3].toString().trim() : '';
+                    let nameValue = row[4] ? row[4].toString().trim() : '';
+                    let ageValue = row[5] ? row[5].toString().trim() : '';
+                    let hnValue = row[6] ? row[6].toString().trim() : '';
+                    let dxValue = row[7] ? row[7].toString().trim() : '';
+
+                    if (nameValue && nameValue !== 'ชื่อ สกุล' && !nameValue.includes('ชื่อ สกุล') && !orderValue.includes('การบันทึก')) {
+                        tempGridList.push({
+                            order: orderValue || (parsedCount + 1).toString(),
+                            date: dateValue,
+                            opt: optOptions.includes(optValue) ? optValue : "มาเอง",
+                            time: timeValue,
+                            name: nameValue,
+                            age: ageValue || "",
+                            hn: hnValue || "",
+                            dx: dxValue || "Mind",
+                            rtNotifyT: row[8] ? row[8].toString().trim() : '0',
+                            rtNotifyS: row[9] ? row[9].toString().trim() : '0',
+                            rtScene: row[10] ? row[10].toString().trim() : '',
+                            rtToHospT: row[11] ? row[11].toString().trim() : '0',
+                            rtToHospS: row[12] ? row[12].toString().trim() : '0',
+                            totalT: row[13] ? row[13].toString().trim() : '',
+                            totalS: row[14] ? row[14].toString().trim() : '',
+                            careBleed: row[15] ? row[15].toString().trim() : '0',
+                            careSplint: row[16] ? row[16].toString().trim() : '0',
+                            careCpr: row[17] ? row[17].toString().trim() : '0',
+                            result: row[18] ? row[18].toString().trim() : 'D/C',
+                            triage: row[19] ? row[19].toString().trim() : ''
+                        });
+                        parsedCount++;
+                    }
+                }
+            }
+
+            if (parsedCount > 0) {
+                yearlyDatastore[currentYear][currentMonth] = tempGridList;
+                renderTable();
+                alert(`[สำเร็จ] โหลดข้อมูล ${parsedCount} รายการ ลงตารางเดือน${monthNamesTh[currentMonth]} พ.ศ. ${currentYear} เรียบร้อยแล้ว`);
+            } else {
+                alert(`[แจ้งเตือน] ไม่พบแถวข้อมูลใหม่ในตารางไฟล์นำเข้า`);
+            }
+            document.getElementById('hiOrder').value = yearlyDatastore[currentYear][currentMonth].length + 1;
+        }
+
+        function updateCellData(index, field, value) {
+            if (yearlyDatastore[currentYear] && yearlyDatastore[currentYear][currentMonth] && yearlyDatastore[currentYear][currentMonth][index]) {
+                yearlyDatastore[currentYear][currentMonth][index][field] = value;
+            }
+        }
+
+        function deleteRecord(index) {
+            if (confirm(`คุณต้องการลบรายชื่อคนไข้ ลำดับที่ ${yearlyDatastore[currentYear][currentMonth][index].order} ใช่หรือไม่?`)) {
+                yearlyDatastore[currentYear][currentMonth].splice(index, 1);
+                renderTable();
+                document.getElementById('hiOrder').value = yearlyDatastore[currentYear][currentMonth].length + 1;
+            }
+        }
+
+        function clearAllRecords() {
+            if (confirm(`คุณต้องการล้างข้อมูลคนไข้ทั้งหมดประจำเดือน ${monthNamesTh[currentMonth]} พ.ศ. ${currentYear} ใช่หรือไม่?`)) {
+                yearlyDatastore[currentYear][currentMonth] = [];
+                renderTable();
+                document.getElementById('hiOrder').value = 1;
+            }
+        }
+
+        // เรนเดอร์ตารางเวอร์ชันสมส่วนขั้นสูงสุด ฟิกซ์ความกว้างหัวคอลลัมน์พอดีคำ ไม่บีบ ไม่เลยขอบหน้าจอ
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            const counter = document.getElementById('recordCounter');
+            const activeList = yearlyDatastore[currentYear][currentMonth] || [];
+            
+            tbody.innerHTML = '';
+            counter.innerText = `ประจำเดือน: ${monthNamesTh[currentMonth]} ${currentYear} | จำนวน: ${activeList.length} ราย`;
+            
+            if (activeList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="21" style="text-align:center; color:#64748b; padding:40px;">ไม่มีข้อมูลรายงาน ER ในเดือน${monthNamesTh[currentMonth]} พ.ศ. ${currentYear} สามารถกรอกเพิ่มหรือนำเข้าไฟล์ได้เลยครับ</td></tr>`;
+                return;
+            }
+            
+            activeList.forEach((p, idx) => {
+                let optSelectHtml = `<select class="table-select" onchange="updateCellData(${idx}, 'opt', this.value)">`;
+                optOptions.forEach(opt => {
+                    optSelectHtml += `<option value="${opt}" ${p.opt === opt ? 'selected' : ''}>${opt}</option>`;
+                });
+                optSelectHtml += `</select>`;
+
+                let dxSelectHtml = `<select class="table-select" onchange="updateCellData(${idx}, 'dx', this.value)">
+                    <option value="Mind" ${p.dx === 'Mind' ? 'selected' : ''}>Mind</option>
+                    <option value="Moderate" ${p.dx === 'Moderate' ? 'selected' : ''}>Moderate</option>
+                    <option value="Sever" ${p.dx === 'Sever' ? 'selected' : ''}>Sever</option>
+                    <option value="ไม่ระบุ" ${p.dx === 'ไม่ระบุ' ? 'selected' : ''}>ไม่ระบุ</option>
+                </select>`;
+
+                let resultSelectHtml = `<select class="table-select" style="font-weight:600; color:#0284c7;" onchange="updateCellData(${idx}, 'result', this.value)">
+                    <option value="D/C" ${p.result === 'D/C' ? 'selected' : ''}>D/C</option>
+                    <option value="Admit" ${p.result === 'Admit' ? 'selected' : ''}>Admit</option>
+                    <option value="Refer" ${p.result === 'Refer' ? 'selected' : ''}>Refer</option>
+                    <option value="ไม่ระบุ" ${p.result === 'ไม่ระบุ' ? 'selected' : ''}>ไม่ระบุ</option>
+                </select>`;
+
+                const row = `<tr>
+                    <td class="col-order"><input type="text" class="table-input" value="${p.order}" onchange="updateCellData(${idx}, 'order', this.value)"></td>
+                    <td class="col-date"><input type="text" class="table-input" value="${p.date}" onchange="updateCellData(${idx}, 'date', this.value)"></td>
+                    <td class="col-opt">${optSelectHtml}</td>
+                    <td class="col-time"><input type="text" class="table-input" value="${p.time}" onchange="updateCellData(${idx}, 'time', this.value)"></td>
+                    <td class="col-name"><input type="text" class="table-input text-left" style="font-weight:600; color:#0f172a;" value="${p.name}" onchange="updateCellData(${idx}, 'name', this.value)"></td>
+                    <td class="col-age"><input type="text" class="table-input" value="${p.age}" onchange="updateCellData(${idx}, 'age', this.value)"></td>
+                    <td class="col-hn"><input type="text" class="table-input" value="${p.hn}" onchange="updateCellData(${idx}, 'hn', this.value)"></td>
+                    <td class="col-dx">${dxSelectHtml}</td>
+                    
+                    <!-- ส่วนผูกช่อง Response Time ย่อยอ้างอิงตรงตามรูปภาพโมเดล -->
+                    <td class="col-ts"><input type="text" class="table-input" value="${p.rtNotifyT || '0'}" onchange="updateCellData(${idx}, 'rtNotifyT', this.value)"></td>
+                    <td class="col-ts"><input type="text" class="table-input" value="${p.rtNotifyS || '0'}" onchange="updateCellData(${idx}, 'rtNotifyS', this.value)"></td>
+                    <td class="col-scene"><input type="text" class="table-input" value="${p.rtScene || '-'}" onchange="updateCellData(${idx}, 'rtScene', this.value)"></td>
+                    <td class="col-ts"><input type="text" class="table-input" value="${p.rtToHospT || '0'}" onchange="updateCellData(${idx}, 'rtToHospT', this.value)"></td>
+                    <td class="col-ts"><input type="text" class="table-input" value="${p.rtToHospS || '0'}" onchange="updateCellData(${idx}, 'rtToHospS', this.value)"></td>
+                    
+                    <td class="col-ts"><input type="text" class="table-input" value="${p.totalT || '-'}" onchange="updateCellData(${idx}, 'totalT', this.value)"></td>
+                    <td class="col-ts"><input type="text" class="table-input" value="${p.totalS || '-'}" onchange="updateCellData(${idx}, 'totalS', this.value)"></td>
+                    
+                    <!-- ส่วนช่อง คอลลัมน์การดูแล สมส่วน ไม่แคบเกินไป -->
+                    <td class="col-care"><input type="text" class="table-input" value="${p.careBleed || '0'}" onchange="updateCellData(${idx}, 'careBleed', this.value)"></td>
+                    <td class="col-care"><input type="text" class="table-input" value="${p.careSplint || '0'}" onchange="updateCellData(${idx}, 'careSplint', this.value)"></td>
+                    <td class="col-care"><input type="text" class="table-input" value="${p.careCpr || '0'}" onchange="updateCellData(${idx}, 'careCpr', this.value)"></td>
+                    
+                    <td class="col-result">${resultSelectHtml}</td>
+                    <td class="col-triage"><input type="text" class="table-input" value="${p.triage || '-'}" onchange="updateCellData(${idx}, 'triage', this.value)"></td>
+                    <td class="col-action">
+                        <button class="btn-action-del" onclick="deleteRecord(${idx})"><i class="fa-solid fa-trash-can"></i></button>
+                    </td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function manualAddRecord(e) {
+            e.preventDefault();
+            
+            const newRecord = {
+                order: document.getElementById('hiOrder').value,
+                date: document.getElementById('hiDate').value,
+                opt: document.getElementById('hiOpt').value,
+                time: document.getElementById('hiTime').value,
+                name: document.getElementById('hiName').value,
+                age: document.getElementById('hiAge').value,
+                hn: document.getElementById('hiHn').value,
+                dx: document.getElementById('hiDx').value,
+                rtNotifyT: document.getElementById('rtNotifyT').value || '0',
+                rtNotifyS: document.getElementById('rtNotifyS').value || '0',
+                rtScene: document.getElementById('rtScene').value,
+                rtToHospT: document.getElementById('rtToHospT').value || '0',
+                rtToHospS: document.getElementById('rtToHospS').value || '0',
+                totalT: document.getElementById('totalT').value,
+                totalS: document.getElementById('totalS').value,
+                careBleed: document.getElementById('careBleed').value || '0',
+                careSplint: document.getElementById('careSplint').value || '0',
+                careCpr: document.getElementById('careCpr').value || '0',
+                result: document.getElementById('hiResult').value,
+                triage: document.getElementById('hiTriage').value
+            };
+            
+            yearlyDatastore[currentYear][currentMonth].unshift(newRecord);
+            renderTable();
+            
+            const savedDate = document.getElementById('hiDate').value;
+            const savedOpt = document.getElementById('hiOpt').value;
+            document.getElementById('hiForm').reset();
+            document.getElementById('hiDate').value = savedDate;
+            document.getElementById('hiOpt').value = savedOpt;
+            document.getElementById('hiOrder').value = yearlyDatastore[currentYear][currentMonth].length + 1;
+            
+            alert(`บันทึกข้อมูลเรียบร้อยในรอบเดือน${monthNamesTh[currentMonth]} ปี พ.ศ. ${currentYear}`);
+        }
+
+        function exportToExcel() {
+            const activeList = yearlyDatastore[currentYear][currentMonth] || [];
+            if(activeList.length === 0) {
+                alert(`ไม่มีข้อมูลให้ดึงส่งออกสำหรับเดือนนี้ครับ`);
+                return;
+            }
+            
+            // ปรับแต่งโครงสร้าง Excel 3 ชั้นให้สอดรับกับหน้าจอโมเดลรายงานจริง
+            const headerRow1 = [
+                "ลำดับ", "ว/ด/ป", "อปท", "เวลา", "ชื่อ สกุล", "อายุ", "HN", "DX", 
+                "Response time", "", "", "", "", "รวม(T)", "รวม(S)", 
+                "การดูแล", "", "", "ผลการ", "ER Triag"
+            ];
+            const headerRow2 = [
+                "", "", "", "", "", "", "", "", 
+                "รับแจ้งถึงที่เกิดเหตุ", "", "ณ จุดเกิดเหตุ", "ออกจากเหตุถึง รพ", "", "", "", 
+                "ห้ามเลือด", "ดาม", "CPR", "", ""
+            ];
+            const headerRow3 = [
+                "", "", "", "", "", "", "", "", 
+                "T", "S", "", "T", "S", "", "", 
+                "", "", "", "", ""
+            ];
+            
+            const dataRows = activeList.map(p => [
+                p.order, p.date, p.opt, p.time, p.name, p.age, p.hn, p.dx,
+                p.rtNotifyT, p.rtNotifyS, p.rtScene, p.rtToHospT, p.rtToHospS,
+                p.totalT, p.totalS, p.careBleed, p.careSplint, p.careCpr,
+                p.result, p.triage
+            ]);
+            
+            const worksheetData = [headerRow1, headerRow2, headerRow3, ...dataRows];
+            const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+            
+            worksheet['!merges'] = [
+                { s: { r: 0, c: 0 }, e: { r: 2, c: 0 } },
+                { s: { r: 0, c: 1 }, e: { r: 2, c: 1 } },
+                { s: { r: 0, c: 2 }, e: { r: 2, c: 2 } },
+                { s: { r: 0, c: 3 }, e: { r: 2, c: 3 } },
+                { s: { r: 0, c: 4 }, e: { r: 2, c: 4 } },
+                { s: { r: 0, c: 5 }, e: { r: 2, c: 5 } },
+                { s: { r: 0, c: 6 }, e: { r: 2, c: 6 } },
+                { s: { r: 0, c: 7 }, e: { r: 2, c: 7 } },
+                { s: { r: 0, c: 8 }, e: { r: 0, c: 12 } }, // Response time ครอบคลุมแถวบนสุด
+                { s: { r: 1, c: 8 }, e: { r: 1, c: 9 } },  // รับแจ้งถึงที่เกิดเหตุ
+                { s: { r: 1, c: 10 }, e: { r: 2, c: 10 } },// ณ จุดเกิดเหตุ ควบสองชั้น
+                { s: { r: 1, c: 11 }, e: { r: 1, c: 12 } },// ออกจากเหตุถึง รพ
+                { s: { r: 0, c: 13 }, e: { r: 2, c: 13 } },
+                { s: { r: 0, c: 14 }, e: { r: 2, c: 14 } },
+                { s: { r: 0, c: 15 }, e: { r: 1, c: 17 } },// การดูแล
+                { s: { r: 0, c: 18 }, e: { r: 2, c: 18 } },
+                { s: { r: 0, c: 19 }, e: { r: 2, c: 19 } }
+            ];
+            
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, `รายงาน ER`);
+            XLSX.writeFile(workbook, `รายงานER_เดือน_${monthNamesTh[currentMonth]}_ปี_${currentYear}.xlsx`);
+        }
+
+        const dropZone = document.getElementById('uploadZone');
+        ['dragenter', 'dragover'].forEach(name => {
+            dropZone.addEventListener(name, e => { e.preventDefault(); dropZone.style.backgroundColor = '#ccfbf1'; }, false);
+        });
+        ['dragleave', 'drop'].forEach(name => {
+            dropZone.addEventListener(name, e => { e.preventDefault(); dropZone.style.backgroundColor = '#f0fdfa'; }, false);
+        });
+        dropZone.addEventListener('drop', e => {
+            const dt = e.dataTransfer;
+            if (dt.files && dt.files.length > 0) {
+                document.getElementById('fileInput').files = dt.files;
+                handleFileSelect(document.getElementById('fileInput'));
+            }
+        });
+    </script>
+</body>
+</html>
