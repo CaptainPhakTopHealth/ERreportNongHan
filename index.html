@@ -8,43 +8,50 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --primary-color: #0d9488; 
-            --primary-dark: #115e59;
-            --secondary-color: #0284c7; 
-            --success-color: #16a34a; 
-            --danger-color: #dc2626;
-            --background-color: #f8fafc;
-            --text-color: #1e293b;
-            --border-color: #cbd5e1;
+            /* ชุดสีแดงฉุกเฉินการแพทย์ สไตล์พาสเทลและเป็นทางการ */
+            --primary-color: #dc2626;     /* สีแดงหลักระบบฉุกเฉิน */
+            --primary-dark: #991b1b;      /* สีแดงเข้มเป็นทางการสำหรับ Header */
+            --primary-light: #fef2f2;     /* สีแดงพาสเทลอ่อนสำหรับ Background โซนเน้น */
+            --primary-border: #fca5a5;    /* สีแดงพาสเทลสว่างสำหรับเส้นขอบ */
+            --secondary-color: #475569;   /* สีเทาเข้มเป็นทางการ */
+            --success-color: #16a34a;     /* สีเขียวสำหรับปุ่มทำงานสำเร็จ */
+            --danger-color: #ef4444;      /* สีแดงสดสำหรับปุ่มลบ */
+            --background-color: #f8fafc;  /* สีพื้นหลังภายนอก */
+            --text-color: #0f172a;        /* สีตัวอักษรหลักเข้มเด่นชัด */
+            --border-color: #cbd5e1;      /* สีเส้นขอบทั่วไป */
         }
 
         body {
-            font-family: 'Sarabun', Arial, sans-serif;
+            font-family: 'Sarabun', 'Inter', Arial, sans-serif;
             background-color: var(--background-color);
             color: var(--text-color);
             margin: 0;
             padding: 0;
+            letter-spacing: -0.01em;
         }
 
         header {
             background-color: var(--primary-dark);
             color: white;
-            padding: 15px 30px;
+            padding: 16px 32px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(153, 27, 27, 0.15);
             flex-wrap: wrap;
             gap: 15px;
         }
 
         header h1 {
             margin: 0;
-            font-size: 22px;
-            font-weight: bold;
+            font-size: 20px;
+            font-weight: 600;
             display: flex;
             align-items: center;
             gap: 12px;
@@ -54,48 +61,54 @@
             display: flex;
             align-items: center;
             gap: 15px;
-            background-color: rgba(255, 255, 255, 0.15);
-            padding: 6px 18px;
-            border-radius: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background-color: rgba(255, 255, 255, 0.12);
+            padding: 6px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
         }
 
         .dropdown-select {
             background-color: #fff;
             color: var(--text-color);
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
+            border: 1px solid transparent;
+            padding: 6px 12px;
+            border-radius: 6px;
             font-family: 'Sarabun', sans-serif;
-            font-size: 14px;
-            font-weight: bold;
+            font-size: 13px;
+            font-weight: 600;
             cursor: pointer;
             outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-select:focus {
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
         }
 
         .container {
             max-width: 100%;
-            margin: 20px auto;
-            padding: 0 25px;
+            margin: 24px auto;
+            padding: 0 24px;
         }
 
         .card {
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.03);
+            padding: 24px;
             border: 1px solid #e2e8f0;
-            margin-bottom: 25px;
+            margin-bottom: 24px;
         }
 
         .card-title {
-            font-size: 16px;
-            font-weight: bold;
+            font-size: 15px;
+            font-weight: 600;
             color: var(--primary-dark);
             margin-top: 0;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #f1f5f9;
-            padding-bottom: 8px;
+            margin-bottom: 18px;
+            border-bottom: 2px solid var(--primary-light);
+            padding-bottom: 10px;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -104,7 +117,7 @@
         .form-horizontal-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 12px;
+            gap: 14px;
             align-items: end;
         }
 
@@ -114,10 +127,10 @@
 
         .form-group label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
             font-weight: 600;
-            font-size: 13px;
-            color: #334155;
+            font-size: 12.5px;
+            color: #475569;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -125,30 +138,34 @@
 
         .form-control {
             width: 100%;
-            padding: 8px 10px;
+            padding: 8px 12px;
             border: 1px solid var(--border-color);
             border-radius: 6px;
             box-sizing: border-box;
             font-size: 13px;
+            font-family: 'Sarabun', sans-serif;
             background-color: #fff;
-            height: 37px;
+            height: 38px;
+            color: var(--text-color);
+            transition: all 0.15s ease;
         }
 
         .form-control:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
         }
 
         .upload-section {
             display: flex;
             gap: 20px;
             align-items: center;
-            background-color: #f0fdfa;
-            border: 2px dashed var(--primary-color);
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            background-color: var(--primary-light);
+            border: 2px dashed var(--primary-border);
+            padding: 18px 24px;
+            border-radius: 10px;
+            margin-bottom: 0;
+            transition: all 0.2s ease;
         }
 
         .upload-zone-text {
@@ -161,27 +178,30 @@
             border-radius: 6px;
             font-size: 13px;
             font-weight: 600;
+            font-family: 'Sarabun', sans-serif;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            height: 37px;
+            height: 38px;
             box-sizing: border-box;
+            transition: all 0.15s ease;
         }
 
-        .btn:hover { opacity: 0.9; }
-        .btn-primary { background-color: var(--primary-color); color: white; }
-        .btn-success { background-color: var(--success-color); color: white; }
-        .btn-browse { background-color: var(--secondary-color); color: white; }
-        .btn-danger { background-color: var(--danger-color); color: white; }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn-primary { background-color: var(--primary-color); color: white; box-shadow: 0 2px 4px rgba(220, 38, 38, 0.15); }
+        .btn-success { background-color: var(--success-color); color: white; box-shadow: 0 2px 4px rgba(22, 163, 74, 0.15); }
+        .btn-browse { background-color: var(--secondary-color); color: white; box-shadow: 0 2px 4px rgba(71, 85, 105, 0.15); }
+        .btn-danger { background-color: var(--danger-color); color: white; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.15); }
 
         .toolbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 16px;
             background: #f1f5f9;
-            padding: 10px 15px;
+            padding: 12px 18px;
             border-radius: 8px;
             gap: 10px;
         }
@@ -192,6 +212,7 @@
             border: 1px solid #e2e8f0;
             max-height: 65vh;
             position: relative;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
         }
 
         table {
@@ -204,14 +225,13 @@
         th {
             background-color: var(--primary-dark);
             color: white;
-            padding: 8px 6px;
+            padding: 10px 6px;
             font-weight: 500;
             text-align: center;
-            border: 1px solid #115e59;
+            border: 1px solid #7f1d1d;
             white-space: nowrap;
         }
 
-        /* ตั้งค่า Sticky ตรึงส่วนหัวตารางทั้ง 3 ชั้นให้อยู่ค้างไว้เวลาเลื่อนลงตามสั่ง */
         th.sticky-row-1 {
             position: sticky;
             top: 0;
@@ -220,30 +240,29 @@
 
         th.sticky-row-2 {
             position: sticky;
-            top: 35px; /* ระยะเยื้องจากความสูงแถวแรก */
+            top: 39px; 
             z-index: 11;
         }
 
         th.sticky-row-3 {
             position: sticky;
-            top: 68px; /* ระยะเยื้องรวมจากแถวหนึ่งและสอง เพื่อให้ T และ S ค้างด้วย */
+            top: 76px; 
             z-index: 10;
         }
 
         td {
-            padding: 5px 6px;
+            padding: 6px 6px;
             border: 1px solid #e2e8f0;
             text-align: center;
             white-space: nowrap;
+            color: #334155;
         }
 
-        /* ปรับสมส่วนคอลลัมน์ตามสั่ง เพื่อความพอดี ไม่เลย ไม่แคบ และไม่ตัดข้อความ */
         .col-order { min-width: 50px; }
         .col-date { min-width: 90px; }
         .col-opt { min-width: 140px; }
         .col-time { min-width: 65px; }
         
-        /* ช่อง ชื่อ สกุล สมส่วนกว้างขวางพอดีเห็นชัดเจน */
         .col-name {
             min-width: 220px;
             max-width: 320px;
@@ -254,7 +273,6 @@
         .col-hn { min-width: 85px; }
         .col-dx { min-width: 95px; }
         
-        /* สัดส่วนเฉพาะกลุ่มคอลลัมน์ย่อย T S ห้ามเลือด ดาม CPR ตามสั่ง */
         .col-ts { min-width: 55px; font-weight: bold; }
         .col-scene { min-width: 100px; }
         .col-care { min-width: 70px; }
@@ -264,33 +282,62 @@
         .col-action { min-width: 65px; }
 
         tr:nth-child(even) { background-color: #f8fafc; }
-        tr:hover { background-color: #f0fdfa; }
+        tr:hover { background-color: var(--primary-light); }
+
+        .summary-title-main {
+            background-color: #cbd5e1;
+            font-weight: 600;
+            font-size: 13.5px;
+            color: #0f172a;
+            text-align: center;
+            padding: 8px;
+            border-top: 2px solid #94a3b8;
+        }
+        .summary-row-header {
+            background-color: #f1f5f9;
+            font-weight: 600;
+            text-align: left;
+            color: var(--primary-dark);
+            padding-left: 15px;
+            border: 1px solid #cbd5e1;
+        }
+        .summary-row-data {
+            background-color: #fff5f5;
+            font-weight: 600;
+            color: #b91c1c;
+            text-align: center;
+            border: 1px solid #fca5a5;
+        }
 
         .counter-info {
-            font-size: 14px;
-            font-weight: bold;
+            font-size: 13.5px;
+            font-weight: 600;
             color: var(--primary-dark);
-            background: #ccfbf1;
-            padding: 5px 14px;
+            background: #ffe4e6;
+            padding: 6px 16px;
             border-radius: 20px;
+            border: 1px solid #fecdd3;
         }
 
         .table-input {
             width: 100%;
             border: 1px solid transparent;
             background: transparent;
-            padding: 4px;
+            padding: 5px 4px;
             font-size: 13px;
             text-align: center;
             border-radius: 4px;
             box-sizing: border-box;
             font-family: 'Sarabun', Arial, sans-serif;
+            color: #334155;
+            transition: all 0.1s ease;
         }
         .table-input:focus {
             background: white;
-            border-color: var(--primary-color);
+            border-color: var(--primary-border);
             outline: none;
-            box-shadow: 0 0 3px rgba(13, 148, 136, 0.3);
+            box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.1);
+            color: #000;
         }
         .table-input.text-left {
             text-align: left;
@@ -307,38 +354,40 @@
             box-sizing: border-box;
             font-family: 'Sarabun', Arial, sans-serif;
             cursor: pointer;
+            color: #334155;
         }
         .table-select:focus {
             background: white;
-            border-color: var(--primary-color);
+            border-color: var(--primary-border);
             outline: none;
         }
 
         .btn-action-del {
-            background: #fee2e2;
+            background: #ffe4e6;
             color: #ef4444;
             border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 5px 9px;
+            border-radius: 5px;
             cursor: pointer;
             font-size: 11px;
             font-weight: bold;
+            transition: all 0.15s ease;
         }
         .btn-action-del:hover {
-            background: #fca5a5;
-            color: #b91c1c;
+            background: #fecdd3;
+            color: #991b1b;
         }
         .file-ready-banner {
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            padding: 8px 12px;
-            border-radius: 6px;
-            margin-top: 10px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 10px 16px;
+            border-radius: 8px;
+            margin-top: 14px;
             display: none;
             align-items: center;
             justify-content: space-between;
             font-size: 13px;
-            color: #1e40af;
+            color: #166534;
         }
     </style>
 </head>
@@ -347,8 +396,7 @@
     <header>
         <h1><i class="fa-solid fa-square-h"></i> ระบบบันทึกข้อมูล รายงาน ER</h1>
         <div class="filter-selectors-container">
-            <!-- ส่วนเลือกเดือน ตามสั่ง เพื่อคีย์แยกข้อมูลแต่ละเดือนๆ ไป -->
-            <label style="font-weight: 600; font-size: 14px; color: white;"><i class="fa-solid fa-calendar-minus"></i> เลือกเดือน : </label>
+            <label style="font-weight: 500; font-size: 13.5px; color: white;"><i class="fa-solid fa-calendar-minus"></i> เลือกเดือน : </label>
             <select id="monthSelect" class="dropdown-select" onchange="handleFilterChange()">
                 <option value="1">มกราคม</option>
                 <option value="2">กุมภาพันธ์</option>
@@ -364,8 +412,7 @@
                 <option value="12">ธันวาคม</option>
             </select>
 
-            <!-- ส่วนเลือกปีงบประมาณเดิมตามสั่ง (2566 - 2576) -->
-            <label style="font-weight: 600; font-size: 14px; color: white;"><i class="fa-solid fa-calendar-days"></i> ปีงบประมาณ : </label>
+            <label style="font-weight: 500; font-size: 13.5px; color: white;"><i class="fa-solid fa-calendar-days"></i> ปีงบประมาณ : </label>
             <select id="yearSelect" class="dropdown-select" onchange="handleFilterChange()">
                 <script>
                     for(let y=2566; y<=2576; y++) {
@@ -378,11 +425,11 @@
 
     <div class="container">
         
-        <div class="card" style="padding: 15px 20px; margin-bottom: 15px;">
+        <div class="card" style="padding: 16px 20px; margin-bottom: 16px;">
             <div class="upload-section" id="uploadZone">
-                <i class="fa-solid fa-file-invoice" style="font-size: 32px; color: #0284c7;"></i>
+                <i class="fa-solid fa-file-invoice" style="font-size: 30px; color: var(--primary-color);"></i>
                 <div class="upload-zone-text">
-                    <p style="margin: 0; font-size: 14px; font-weight: bold; color: var(--primary-dark);">นำเข้าไฟล์ข้อมูลรายชื่อคนไข้และ HN (.txt / .csv / .xlsx)</p>
+                    <p style="margin: 0; font-size: 14px; font-weight: 600; color: var(--primary-dark);">นำเข้าไฟล์ข้อมูลรายชื่อคนไข้และ HN (.txt / .csv / .xlsx)</p>
                     <span style="font-size: 12px; color: #64748b;">ลากไฟล์มาวางที่นี่ หรือกดปุ่มเพื่อเลือกไฟล์ (ระบบจะบันทึกเข้าสู่ เดือน และ ปี ที่ระบุไว้ด้านบนโดยอัตโนมัติ)</span>
                 </div>
                 <button class="btn btn-browse" onclick="document.getElementById('fileInput').click()"><i class="fa-solid fa-folder-open"></i> เลือกไฟล์ในเครื่อง</button>
@@ -533,7 +580,7 @@
                         <input type="text" id="hiTriage" class="form-control" placeholder="ระบุกลุ่มคัดแยก">
                     </div>
 
-                    <div class="form-group" style="grid-column: 1 / -1; text-align: right; margin-top: 5px;">
+                    <div class="form-group" style="grid-column: 1 / -1; text-align: right; margin-top: 6px;">
                         <button type="submit" class="btn btn-primary" style="width: 250px;"><i class="fa-solid fa-plus"></i> เพิ่มข้อมูลลงตารางหลัก</button>
                     </div>
                 </div>
@@ -552,7 +599,6 @@
             <div class="table-responsive">
                 <table id="hiTable">
                     <thead>
-                        <!-- ชั้นที่ 1: รวบ Response time ตรงตามภาพ และระบุหัวข้อหลักคงที่ไว้ด้านบนสุด -->
                         <tr>
                             <th rowspan="3" class="sticky-row-1 col-order">ลำดับ</th>
                             <th rowspan="3" class="sticky-row-1 col-date">ว/ด/ป</th>
@@ -570,7 +616,6 @@
                             <th rowspan="3" class="sticky-row-1 col-triage">ER Triag</th>
                             <th rowspan="3" class="sticky-row-1 col-action">จัดการ</th>
                         </tr>
-                        <!-- ชั้นที่ 2: แบ่งกลุ่มย่อย รับแจ้ง, จุดเกิดเหตุ (ควบสองแถว), ออกจากเหตุ ตามภาพ -->
                         <tr>
                             <th colspan="2" class="sticky-row-2">รับแจ้งถึงที่เกิดเหตุ</th>
                             <th rowspan="2" class="sticky-row-2 col-scene">ณ จุดเกิดเหตุ</th>
@@ -579,7 +624,6 @@
                             <th rowspan="2" class="sticky-row-2 col-care">ดาม</th>
                             <th rowspan="2" class="sticky-row-2 col-care">CPR</th>
                         </tr>
-                        <!-- ชั้นที่ 3: ระบุ T และ S ให้ค้างไว้แน่นหนาเวลาเลื่อนจอลงด้านล่าง -->
                         <tr>
                             <th class="sticky-row-3 col-ts">T</th>
                             <th class="sticky-row-3 col-ts">S</th>
@@ -590,11 +634,13 @@
                     <tbody id="tableBody">
                         <tr>
                             <td colspan="21" style="text-align:center; color:#64748b; padding:40px; font-size: 14px;">
-                                <i class="fa-solid fa-spinner fa-spin" style="font-size: 26px; display:block; margin-bottom:10px;"></i>
+                                <i class="fa-solid fa-spinner fa-spin" style="font-size: 26px; display:block; margin-bottom:10px; color:var(--primary-color);"></i>
                                 กำลังตั้งค่าระบบจัดเก็บรายงานแยกรายเดือน...
                             </td>
                         </tr>
                     </tbody>
+                    <tfoot id="tableFoot">
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -602,27 +648,23 @@
     </div>
 
     <script>
-        // โครงสร้างหลักในการจัดเก็บข้อมูลแยก ปีงบประมาณ -> รายเดือน (1-12) เพื่อกรอกและสลับดูรายเดือนได้สมบูรณ์แบบ
         let yearlyDatastore = {};
         let currentYear = "2566";
-        let currentMonth = "12"; // เริ่มต้นที่เดือนธันวาคมเพื่อให้ตรงกับตัวอย่างข้อมูล
+        let currentMonth = "12"; 
         let selectedFileObject = null;
 
-        // รายชื่อตัวเลือก อปท ทั้งหมดในอำเภอหนองหาน จังหวัดอุดรธานี ครบถ้วนตามคำสั่ง
         const optOptions = [
             "มาเอง", "รพ.หนองหาน", "ทต.หนองหาน", "ทต.หนองเม็ก", "ทต.ผักตบ", "ทต.โคกสูง",
             "อบต.หนองหาน", "อบต.หนองเม็ก", "อบต.ผักตบ", "อบต.พังงู", "อบต.สะแบง", 
             "อบต.โพนงาม", "อบต.สร้อยพร้าว", "อบต.บ้านเชียง", "อบต.บ้านยา", "อบต.ดอนหายโศก"
         ];
 
-        // รายชื่อเดือนสำหรับแสดงผลสถิติและชื่อไฟล์ส่งออก
         const monthNamesTh = {
             "1": "มกราคม", "2": "กุมภาพันธ์", "3": "มีนาคม", "4": "เมษายน", "5": "พฤษภาคม", "6": "มิถุนายน",
             "7": "กรกฎาคม", "8": "สิงหาคม", "9": "กันยายน", "10": "ตุลาคม", "11": "พฤศจิกายน", "12": "ธันวาคม"
         };
 
         window.onload = function() {
-            // สถาปนาโครงสร้างข้อมูลรองรับการบันทึกแยก ปี และ เดือน (1-12) ครบครัน
             for (let y = 2566; y <= 2576; y++) {
                 yearlyDatastore[y.toString()] = {};
                 for (let m = 1; m <= 12; m++) {
@@ -630,12 +672,10 @@
                 }
             }
             
-            // ตั้งค่าหน้าจอเริ่มต้นไปที่เดือน ธันวาคม
             document.getElementById('monthSelect').value = "12";
             generateInitialMasterList();
         };
 
-        // สลับโหลดตารางเมื่อผู้ใช้งานเลือกเปลี่ยน เดือน หรือ ปีงบประมาณ
         function handleFilterChange() {
             currentYear = document.getElementById('yearSelect').value;
             currentMonth = document.getElementById('monthSelect').value;
@@ -645,14 +685,13 @@
             document.getElementById('hiOrder').value = activeList.length + 1;
         }
 
-        // นำส่งชุดรายชื่อคนไข้ตัวอย่าง 147 รายการแรกเข้าสู่ระบบฐานข้อมูลปี 2566 เดือนธันวาคม (สกัดดึง HN แม่นยำ)[cite: 1]
         function generateInitialMasterList() {
             let tempGridList = [];
             let namesSample = [
-                "นายศุภชัย ชานันโท (HN: 0326829)", "นางเวธนี สิงห์ครุฑ (HN: 0089310)", "ด.ญ.บุณยวีร์ สุทธิธรรม (HN: 0261357)", //[cite: 1]
-                "นายรุ่ง ก้อนภักดี (HN: 0052019)", "น.ส.สมจิตร์ พรมสีหา (HN: 0326879)", "นายวีระภาพ บุญบุตตะ (HN: 0163340)", //[cite: 1]
-                "นายศึก พลดงนอก (HN: 0038098)", "นายสิน บุญเกิด (HN: 0235296)", "นายศักดิ์ศรี วงนัทธี (HN: 0271117)", //[cite: 1]
-                "นายเชิดชัย คำชาลี (HN: 0326891)", "ด.ญ.อภิญญา ดีจริง (HN: 0236066)", "นายชนะพล จันทร์ปัญญา (HN: 0216570)" //[cite: 1]
+                "นายศุภชัย ชานันโท (HN: 0326829)", "นางเวธนี สิงห์ครุฑ (HN: 0089310)", "ด.ญ.บุณยวีร์ สุทธิธรรม (HN: 0261357)", 
+                "นายรุ่ง ก้อนภักดี (HN: 0052019)", "น.ส.สมจิตร์ พรมสีหา (HN: 0326879)", "นายวีระภาพ บุญบุตตะ (HN: 0163340)", 
+                "นายศึก พลดงนอก (HN: 0038098)", "นายสิน บุญเกิด (HN: 0235296)", "นายศักดิ์ศรี วงนัทธี (HN: 0271117)", 
+                "นายเชิดชัย คำชาลี (HN: 0326891)", "ด.ญ.อภิญญา ดีจริง (HN: 0236066)", "นายชนะพล จันทร์ปัญญา (HN: 0216570)" 
             ];
             
             let dxSample = ["Mind", "Moderate", "Sever"];
@@ -662,7 +701,6 @@
                 let day = (k % 31) + 1;
                 let sampleItem = namesSample[(k - 1) % namesSample.length];
                 
-                // ดึงสัดส่วนชื่อและเลข HN ออกแยกคอลลัมน์ให้สมส่วน
                 let cleanedName = sampleItem.split(" (HN:")[0];
                 let cleanedHn = sampleItem.includes("HN:") ? sampleItem.split("HN: ")[1].replace(")", "") : "0326829";
 
@@ -689,7 +727,6 @@
                     triage: k % 4 === 0 ? "1" : ""
                 });
             }
-            // ปลายทางจัดเก็บลงที่ ปี 2566 เดือน 12 (ธันวาคม)
             yearlyDatastore["2566"]["12"] = tempGridList;
             renderTable();
             document.getElementById('hiOrder').value = yearlyDatastore[currentYear][currentMonth].length + 1;
@@ -848,6 +885,7 @@
         function updateCellData(index, field, value) {
             if (yearlyDatastore[currentYear] && yearlyDatastore[currentYear][currentMonth] && yearlyDatastore[currentYear][currentMonth][index]) {
                 yearlyDatastore[currentYear][currentMonth][index][field] = value;
+                calculateTableSummary(); 
             }
         }
 
@@ -867,7 +905,89 @@
             }
         }
 
-        // เรนเดอร์ตารางเวอร์ชันสมส่วนขั้นสูงสุด ฟิกซ์ความกว้างหัวคอลลัมน์พอดีคำ ไม่บีบ ไม่เลยขอบหน้าจอ
+        function calculateTableSummary() {
+            const tfoot = document.getElementById('tableFoot');
+            const activeList = yearlyDatastore[currentYear][currentMonth] || [];
+            
+            if (activeList.length === 0) {
+                tfoot.innerHTML = '';
+                return;
+            }
+
+            let dxCounts = { "Mind": 0, "Moderate": 0, "Sever": 0, "ไม่ระบุ": 0 };
+            let resultCounts = { "D/C": 0, "Admit": 0, "Refer": 0, "ไม่ระบุ": 0 };
+            let optCounts = {};
+            optOptions.forEach(opt => optCounts[opt] = 0);
+
+            activeList.forEach(p => {
+                if (dxCounts[p.dx] !== undefined) dxCounts[p.dx]++;
+                else dxCounts["ไม่ระบุ"]++;
+
+                if (resultCounts[p.result] !== undefined) resultCounts[p.result]++;
+                else resultCounts["ไม่ระบุ"]++;
+
+                if (optCounts[p.opt] !== undefined) optCounts[p.opt]++;
+            });
+
+            let footerHtml = `
+                <tr>
+                    <td colspan="21" class="summary-title-main">สรุปภาพรวมข้อมูลรายงานประจำเดือน (รวมทั้งสิ้น ${activeList.length} ราย)</td>
+                </tr>
+            `;
+
+            footerHtml += `
+                <tr>
+                    <td colspan="4" class="summary-row-header">สรุปกลุ่มความรุนแรง (DX)</td>
+                    <td colspan="4" class="summary-row-data">Mind: ${dxCounts["Mind"]} ราย</td>
+                    <td colspan="4" class="summary-row-data">Moderate: ${dxCounts["Moderate"]} ราย</td>
+                    <td colspan="4" class="summary-row-data">Sever: ${dxCounts["Sever"]} ราย</td>
+                    <td colspan="5" class="summary-row-data">ไม่ระบุ: ${dxCounts["ไม่ระบุ"]} ราย</td>
+                </tr>
+            `;
+
+            footerHtml += `
+                <tr>
+                    <td colspan="4" class="summary-row-header">สรุปกลุ่มผลการรักษา</td>
+                    <td colspan="4" class="summary-row-data">D/C: ${resultCounts["D/C"]} ราย</td>
+                    <td colspan="4" class="summary-row-data">Admit: ${resultCounts["Admit"]} ราย</td>
+                    <td colspan="4" class="summary-row-data">Refer: ${resultCounts["Refer"]} ราย</td>
+                    <td colspan="5" class="summary-row-data">ไม่ระบุ: ${resultCounts["ไม่ระบุ"]} ราย</td>
+                </tr>
+            `;
+
+            let optSummaryPieces = [];
+            for (let opt in optCounts) {
+                if (optCounts[opt] > 0) {
+                    optSummaryPieces.push(`${opt}: ${optCounts[opt]} ราย`);
+                }
+            }
+
+            if (optSummaryPieces.length > 0) {
+                let chunkSize = 4; 
+                for (let i = 0; i < optSummaryPieces.length; i += chunkSize) {
+                    let chunk = optSummaryPieces.slice(i, i + chunkSize);
+                    footerHtml += `
+                        <tr>
+                            ${i === 0 ? `<td colspan="4" rowspan="${Math.ceil(optSummaryPieces.length / chunkSize)}" class="summary-row-header" style="vertical-align: middle;">สรุปแยกตามกลุ่มพื้นที่ อปท.</td>` : ''}
+                            <td colspan="4" class="summary-row-data">${chunk[0] || ''}</td>
+                            <td colspan="4" class="summary-row-data">${chunk[1] || ''}</td>
+                            <td colspan="4" class="summary-row-data">${chunk[2] || ''}</td>
+                            <td colspan="5" class="summary-row-data">${chunk[3] || ''}</td>
+                        </tr>
+                    `;
+                }
+            } else {
+                footerHtml += `
+                    <tr>
+                        <td colspan="4" class="summary-row-header">สรุปแยกตามกลุ่มพื้นที่ อปท.</td>
+                        <td colspan="17" class="summary-row-data">ยังไม่มีข้อมูลสถิติพื้นที่</td>
+                    </tr>
+                `;
+            }
+
+            tfoot.innerHTML = footerHtml;
+        }
+
         function renderTable() {
             const tbody = document.getElementById('tableBody');
             const counter = document.getElementById('recordCounter');
@@ -878,6 +998,7 @@
             
             if (activeList.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="21" style="text-align:center; color:#64748b; padding:40px;">ไม่มีข้อมูลรายงาน ER ในเดือน${monthNamesTh[currentMonth]} พ.ศ. ${currentYear} สามารถกรอกเพิ่มหรือนำเข้าไฟล์ได้เลยครับ</td></tr>`;
+                document.getElementById('tableFoot').innerHTML = ''; 
                 return;
             }
             
@@ -895,7 +1016,7 @@
                     <option value="ไม่ระบุ" ${p.dx === 'ไม่ระบุ' ? 'selected' : ''}>ไม่ระบุ</option>
                 </select>`;
 
-                let resultSelectHtml = `<select class="table-select" style="font-weight:600; color:#0284c7;" onchange="updateCellData(${idx}, 'result', this.value)">
+                let resultSelectHtml = `<select class="table-select" style="font-weight:600; color:var(--primary-color);" onchange="updateCellData(${idx}, 'result', this.value)">
                     <option value="D/C" ${p.result === 'D/C' ? 'selected' : ''}>D/C</option>
                     <option value="Admit" ${p.result === 'Admit' ? 'selected' : ''}>Admit</option>
                     <option value="Refer" ${p.result === 'Refer' ? 'selected' : ''}>Refer</option>
@@ -912,7 +1033,6 @@
                     <td class="col-hn"><input type="text" class="table-input" value="${p.hn}" onchange="updateCellData(${idx}, 'hn', this.value)"></td>
                     <td class="col-dx">${dxSelectHtml}</td>
                     
-                    <!-- ส่วนผูกช่อง Response Time ย่อยอ้างอิงตรงตามรูปภาพโมเดล -->
                     <td class="col-ts"><input type="text" class="table-input" value="${p.rtNotifyT || '0'}" onchange="updateCellData(${idx}, 'rtNotifyT', this.value)"></td>
                     <td class="col-ts"><input type="text" class="table-input" value="${p.rtNotifyS || '0'}" onchange="updateCellData(${idx}, 'rtNotifyS', this.value)"></td>
                     <td class="col-scene"><input type="text" class="table-input" value="${p.rtScene || '-'}" onchange="updateCellData(${idx}, 'rtScene', this.value)"></td>
@@ -922,7 +1042,6 @@
                     <td class="col-ts"><input type="text" class="table-input" value="${p.totalT || '-'}" onchange="updateCellData(${idx}, 'totalT', this.value)"></td>
                     <td class="col-ts"><input type="text" class="table-input" value="${p.totalS || '-'}" onchange="updateCellData(${idx}, 'totalS', this.value)"></td>
                     
-                    <!-- ส่วนช่อง คอลลัมน์การดูแล สมส่วน ไม่แคบเกินไป -->
                     <td class="col-care"><input type="text" class="table-input" value="${p.careBleed || '0'}" onchange="updateCellData(${idx}, 'careBleed', this.value)"></td>
                     <td class="col-care"><input type="text" class="table-input" value="${p.careSplint || '0'}" onchange="updateCellData(${idx}, 'careSplint', this.value)"></td>
                     <td class="col-care"><input type="text" class="table-input" value="${p.careCpr || '0'}" onchange="updateCellData(${idx}, 'careCpr', this.value)"></td>
@@ -935,6 +1054,8 @@
                 </tr>`;
                 tbody.innerHTML += row;
             });
+
+            calculateTableSummary();
         }
 
         function manualAddRecord(e) {
@@ -983,7 +1104,6 @@
                 return;
             }
             
-            // ปรับแต่งโครงสร้าง Excel 3 ชั้นให้สอดรับกับหน้าจอโมเดลรายงานจริง
             const headerRow1 = [
                 "ลำดับ", "ว/ด/ป", "อปท", "เวลา", "ชื่อ สกุล", "อายุ", "HN", "DX", 
                 "Response time", "", "", "", "", "รวม(T)", "รวม(S)", 
@@ -1000,17 +1120,77 @@
                 "", "", "", "", ""
             ];
             
-            const dataRows = activeList.map(p => [
-                p.order, p.date, p.opt, p.time, p.name, p.age, p.hn, p.dx,
-                p.rtNotifyT, p.rtNotifyS, p.rtScene, p.rtToHospT, p.rtToHospS,
-                p.totalT, p.totalS, p.careBleed, p.careSplint, p.careCpr,
-                p.result, p.triage
-            ]);
+            let worksheetData = [headerRow1, headerRow2, headerRow3];
+
+            activeList.forEach(p => {
+                worksheetData.push([
+                    p.order, p.date, p.opt, p.time, p.name, p.age, p.hn, p.dx,
+                    p.rtNotifyT, p.rtNotifyS, p.rtScene, p.rtToHospT, p.rtToHospS,
+                    p.totalT, p.totalS, p.careBleed, p.careSplint, p.careCpr,
+                    p.result, p.triage
+                ]);
+            });
+
+            let startSummaryRowIndex = worksheetData.length;
+
+            let dxCounts = { "Mind": 0, "Moderate": 0, "Sever": 0, "ไม่ระบุ": 0 };
+            let resultCounts = { "D/C": 0, "Admit": 0, "Refer": 0, "ไม่ระบุ": 0 };
+            let optCounts = {};
+            optOptions.forEach(opt => optCounts[opt] = 0);
+
+            activeList.forEach(p => {
+                if (dxCounts[p.dx] !== undefined) dxCounts[p.dx]++;
+                if (resultCounts[p.result] !== undefined) resultCounts[p.result]++;
+                if (optCounts[p.opt] !== undefined) optCounts[p.opt]++;
+            });
+
+            worksheetData.push([`สรุปภาพรวมข้อมูลรายงานประจำเดือน (รวมทั้งสิ้น ${activeList.length} ราย)`, "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]);
             
-            const worksheetData = [headerRow1, headerRow2, headerRow3, ...dataRows];
+            worksheetData.push([
+                "สรุปกลุ่มความรุนแรง (DX)", "", "", "", 
+                `Mind: ${dxCounts["Mind"]} ราย`, "", "", "", 
+                `Moderate: ${dxCounts["Moderate"]} ราย`, "", "", "", 
+                `Sever: ${dxCounts["Sever"]} ราย`, "", "", "", 
+                `ไม่ระบุ: ${dxCounts["ไม่ระบุ"]} ราย`, "", "", ""
+            ]);
+
+            worksheetData.push([
+                "สรุปกลุ่มผลการรักษา", "", "", "", 
+                `D/C: ${resultCounts["D/C"]} ราย`, "", "", "", 
+                `Admit: ${resultCounts["Admit"]} ราย`, "", "", "", 
+                `Refer: ${resultCounts["Refer"]} ราย`, "", "", "", 
+                `ไม่ระบุ: ${resultCounts["ไม่ระบุ"]} ราย`, "", "", ""
+            ]);
+
+            let optSummaryPieces = [];
+            for (let opt in optCounts) {
+                if (optCounts[opt] > 0) {
+                    optSummaryPieces.push(`${opt}: ${optCounts[opt]} ราย`);
+                }
+            }
+
+            let optRowStartIndex = worksheetData.length;
+            if (optSummaryPieces.length > 0) {
+                let chunkSize = 4;
+                for (let i = 0; i < optSummaryPieces.length; i += chunkSize) {
+                    let chunk = optSummaryPieces.slice(i, i + chunkSize);
+                    worksheetData.push([
+                        "สรุปแยกตามกลุ่มพื้นที่ อปท.", "", "", "", 
+                        chunk[0] || "", "", "", "", 
+                        chunk[1] || "", "", "", "", 
+                        chunk[2] || "", "", "", "", 
+                        chunk[3] || "", "", "", ""
+                    ]);
+                }
+            } else {
+                worksheetData.push(["สรุปแยกตามกลุ่มพื้นที่ อปท.", "", "", "", "ยังไม่มีข้อมูลสถิติพื้นที่", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]);
+            }
+
+            let endSummaryRowIndex = worksheetData.length - 1;
+
             const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
             
-            worksheet['!merges'] = [
+            let mergesList = [
                 { s: { r: 0, c: 0 }, e: { r: 2, c: 0 } },
                 { s: { r: 0, c: 1 }, e: { r: 2, c: 1 } },
                 { s: { r: 0, c: 2 }, e: { r: 2, c: 2 } },
@@ -1019,16 +1199,47 @@
                 { s: { r: 0, c: 5 }, e: { r: 2, c: 5 } },
                 { s: { r: 0, c: 6 }, e: { r: 2, c: 6 } },
                 { s: { r: 0, c: 7 }, e: { r: 2, c: 7 } },
-                { s: { r: 0, c: 8 }, e: { r: 0, c: 12 } }, // Response time ครอบคลุมแถวบนสุด
-                { s: { r: 1, c: 8 }, e: { r: 1, c: 9 } },  // รับแจ้งถึงที่เกิดเหตุ
-                { s: { r: 1, c: 10 }, e: { r: 2, c: 10 } },// ณ จุดเกิดเหตุ ควบสองชั้น
-                { s: { r: 1, c: 11 }, e: { r: 1, c: 12 } },// ออกจากเหตุถึง รพ
+                { s: { r: 0, c: 8 }, e: { r: 0, c: 12 } }, 
+                { s: { r: 1, c: 8 }, e: { r: 1, c: 9 } },  
+                { s: { r: 1, c: 10 }, e: { r: 2, c: 10 } },
+                { s: { r: 1, c: 11 }, e: { r: 1, c: 12 } },
                 { s: { r: 0, c: 13 }, e: { r: 2, c: 13 } },
                 { s: { r: 0, c: 14 }, e: { r: 2, c: 14 } },
-                { s: { r: 0, c: 15 }, e: { r: 1, c: 17 } },// การดูแล
+                { s: { r: 0, c: 15 }, e: { r: 1, c: 17 } },
                 { s: { r: 0, c: 18 }, e: { r: 2, c: 18 } },
                 { s: { r: 0, c: 19 }, e: { r: 2, c: 19 } }
             ];
+
+            mergesList.push({ s: { r: startSummaryRowIndex, c: 0 }, e: { r: startSummaryRowIndex, c: 19 } });
+            
+            mergesList.push({ s: { r: startSummaryRowIndex + 1, c: 0 }, e: { r: startSummaryRowIndex + 1, c: 3 } });
+            mergesList.push({ s: { r: startSummaryRowIndex + 1, c: 4 }, e: { r: startSummaryRowIndex + 1, c: 7 } });
+            mergesList.push({ s: { r: startSummaryRowIndex + 1, c: 8 }, e: { r: startSummaryRowIndex + 1, c: 11 } });
+            mergesList.push({ s: { r: startSummaryRowIndex + 1, c: 12 }, e: { r: startSummaryRowIndex + 1, c: 15 } });
+            mergesList.push({ s: { r: startSummaryRowIndex + 1, c: 16 }, e: { r: startSummaryRowIndex + 1, c: 19 } });
+
+            mergesList.push({ s: { r: startSummaryRowIndex + 2, c: 0 }, e: { r: startSummaryRowIndex + 2, c: 3 } });
+            mergesList.push({ s: { r: startSummaryRowIndex + 2, c: 4 }, e: { r: startSummaryRowIndex + 2, c: 7 } });
+            mergesList.push({ s: { r: startSummaryRowIndex + 2, c: 8 }, e: { r: startSummaryRowIndex + 2, c: 11 } });
+            mergesList.push({ s: { r: startSummaryRowIndex + 2, c: 12 }, e: { r: startSummaryRowIndex + 2, c: 15 } });
+            mergesList.push({ s: { r: startSummaryRowIndex + 2, c: 16 }, e: { r: startSummaryRowIndex + 2, c: 19 } });
+
+            if (optSummaryPieces.length > 0) {
+                let chunkRowsCount = Math.ceil(optSummaryPieces.length / 4);
+                mergesList.push({ s: { r: optRowStartIndex, c: 0 }, e: { r: optRowStartIndex + chunkRowsCount - 1, c: 3 } });
+                
+                for (let r = optRowStartIndex; r <= endSummaryRowIndex; r++) {
+                    mergesList.push({ s: { r: r, c: 4 }, e: { r: r, c: 7 } });
+                    mergesList.push({ s: { r: r, c: 8 }, e: { r: r, c: 11 } });
+                    mergesList.push({ s: { r: r, c: 12 }, e: { r: r, c: 15 } });
+                    mergesList.push({ s: { r: r, c: 16 }, e: { r: r, c: 19 } });
+                }
+            } else {
+                mergesList.push({ s: { r: optRowStartIndex, c: 0 }, e: { r: optRowStartIndex, c: 3 } });
+                mergesList.push({ s: { r: optRowStartIndex, c: 4 }, e: { r: optRowStartIndex, c: 19 } });
+            }
+
+            worksheet['!merges'] = mergesList;
             
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, `รายงาน ER`);
@@ -1037,7 +1248,7 @@
 
         const dropZone = document.getElementById('uploadZone');
         ['dragenter', 'dragover'].forEach(name => {
-            dropZone.addEventListener(name, e => { e.preventDefault(); dropZone.style.backgroundColor = '#ccfbf1'; }, false);
+            dropZone.addEventListener(name, e => { e.preventDefault(); dropZone.style.backgroundColor = '#ffe4e6'; }, false);
         });
         ['dragleave', 'drop'].forEach(name => {
             dropZone.addEventListener(name, e => { e.preventDefault(); dropZone.style.backgroundColor = '#f0fdfa'; }, false);
