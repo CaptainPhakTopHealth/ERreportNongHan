@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบบันทึกข้อมูล รายงาน ER - โรงพยาบาลหนองหาน</title>
+    <title> ระบบบันทึกข้อมูล รายงาน ER รพ.หนองหาน - โรงพยาบาลหนองหาน </title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -446,7 +446,7 @@
         </div>
 
         <div class="card" style="margin-bottom: 20px;">
-            <div class="card-title"><i class="fa-solid fa-user-pen"></i> คีย์เพิ่มข้อมูลเดี่ยว (ระบุตัวเลือก อปท. ทุกตำบลในอำเภอหนองหาน จังหวัดอุดรธานี ครบถ้วน)</div>
+            <div class="card-title"><i class="fa-solid fa-user-pen"></i> คีย์เพิ่มข้อมูลเดี่ยว </div>
             <form id="hiForm" onsubmit="manualAddRecord(event)">
                 <div class="form-horizontal-grid">
                     
@@ -581,7 +581,7 @@
                     </div>
 
                     <div class="form-group" style="grid-column: 1 / -1; text-align: right; margin-top: 6px;">
-                        <button type="submit" class="btn btn-primary" style="width: 250px;"><i class="fa-solid fa-plus"></i> เพิ่มข้อมูลลงตารางหลัก</button>
+                        <button type="submit" class="btn btn-primary" style="width: 250px;"><i class="fa-solid fa-plus"></i> เพิ่มข้อมูลลงตารางหลักและเซฟขึ้น Cloud</button>
                     </div>
                 </div>
             </form>
@@ -589,7 +589,7 @@
 
         <div class="card">
             <div class="toolbar">
-                <div class="counter-info" id="recordCounter">กำลังโหลดข้อมูล...</div>
+                <div class="counter-info" id="recordCounter">กำลังเชื่อมต่อกับฐานข้อมูล Cloud...</div>
                 <div style="display: flex; gap: 8px;">
                     <button class="btn btn-danger" onclick="clearAllRecords()"><i class="fa-solid fa-trash-can"></i> ล้างข้อมูลเดือนนี้</button>
                     <button class="btn btn-success" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> ส่งออกข้อมูลเดือนนี้ (.xlsx)</button>
@@ -648,10 +648,15 @@
     </div>
 
     <script>
+        
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbynGALwEJRO2KtCiHrLHwuJw-niUNBrAYkvhdRHdTkkbApfKcJmldNKIEssYO8O1LSE/exec';
+        // -----------------------
+
         let yearlyDatastore = {};
-        let currentYear = "2566";
-        let currentMonth = "12"; 
+        let currentYear = new Date().getFullYear() + 543; // ปีปัจจุบัน พ.ศ.
+        let currentMonth = (new Date().getMonth() + 1).toString(); 
         let selectedFileObject = null;
+        let saveTimeout;
 
         const optOptions = [
             "มาเอง", "รพ.หนองหาน", "ทต.หนองหาน", "ทต.หนองเม็ก", "ทต.ผักตบ", "ทต.โคกสูง",
@@ -664,7 +669,7 @@
             "7": "กรกฎาคม", "8": "สิงหาคม", "9": "กันยายน", "10": "ตุลาคม", "11": "พฤศจิกายน", "12": "ธันวาคม"
         };
 
-        window.onload = function() {
+        window.onload = async function() {
             for (let y = 2566; y <= 2576; y++) {
                 yearlyDatastore[y.toString()] = {};
                 for (let m = 1; m <= 12; m++) {
@@ -672,64 +677,92 @@
                 }
             }
             
-            document.getElementById('monthSelect').value = "12";
-            generateInitialMasterList();
+            document.getElementById('yearSelect').value = currentYear.toString();
+            document.getElementById('monthSelect').value = currentMonth;
+            await fetchDataFromCloud();
         };
 
-        function handleFilterChange() {
-            currentYear = document.getElementById('yearSelect').value;
-            currentMonth = document.getElementById('monthSelect').value;
-            renderTable();
-            
-            let activeList = yearlyDatastore[currentYear][currentMonth] || [];
-            document.getElementById('hiOrder').value = activeList.length + 1;
+        // โหลดข้อมูลจาก Google Sheets
+        async function fetchDataFromCloud() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = `<tr><td colspan="21" style="text-align:center; color:#64748b; padding:40px; font-size: 14px;">
+                <i class="fa-solid fa-cloud-arrow-down fa-spin" style="font-size: 26px; display:block; margin-bottom:10px; color:var(--primary-color);"></i>
+                กำลังดึงข้อมูลจาก Cloud ของเดือน${monthNamesTh[currentMonth]} พ.ศ. ${currentYear}...
+            </td></tr>`;
+            document.getElementById('tableFoot').innerHTML = '';
+
+            try {
+                if(!SCRIPT_URL || SCRIPT_URL.includes('ใส่_URL')) {
+                    yearlyDatastore[currentYear][currentMonth] = [];
+                    renderTable();
+                    alert("กรุณาใส่ URL Web App ในโค้ด HTML เพื่อเชื่อมต่อกับฐานข้อมูล Cloud");
+                    return;
+                }
+
+                let response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'getData', year: currentYear, month: currentMonth })
+                });
+                let json = await response.json();
+
+                if (json.status === 'success') {
+                    yearlyDatastore[currentYear][currentMonth] = json.data;
+                    renderTable();
+                    document.getElementById('hiOrder').value = yearlyDatastore[currentYear][currentMonth].length + 1;
+                } else {
+                    console.error("Cloud Error:", json.message);
+                    alert("ไม่สามารถดึงข้อมูลได้: " + json.message);
+                }
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์คลาวด์");
+                renderTable();
+            }
         }
 
-        function generateInitialMasterList() {
-            let tempGridList = [];
-            let namesSample = [
-                "นายศุภชัย ชานันโท (HN: 0326829)", "นางเวธนี สิงห์ครุฑ (HN: 0089310)", "ด.ญ.บุณยวีร์ สุทธิธรรม (HN: 0261357)", 
-                "นายรุ่ง ก้อนภักดี (HN: 0052019)", "น.ส.สมจิตร์ พรมสีหา (HN: 0326879)", "นายวีระภาพ บุญบุตตะ (HN: 0163340)", 
-                "นายศึก พลดงนอก (HN: 0038098)", "นายสิน บุญเกิด (HN: 0235296)", "นายศักดิ์ศรี วงนัทธี (HN: 0271117)", 
-                "นายเชิดชัย คำชาลี (HN: 0326891)", "ด.ญ.อภิญญา ดีจริง (HN: 0236066)", "นายชนะพล จันทร์ปัญญา (HN: 0216570)" 
-            ];
-            
-            let dxSample = ["Mind", "Moderate", "Sever"];
-            let resultSample = ["D/C", "Admit", "Refer"];
-            
-            for (let k = 1; k <= 147; k++) {
-                let day = (k % 31) + 1;
-                let sampleItem = namesSample[(k - 1) % namesSample.length];
-                
-                let cleanedName = sampleItem.split(" (HN:")[0];
-                let cleanedHn = sampleItem.includes("HN:") ? sampleItem.split("HN: ")[1].replace(")", "") : "0326829";
+        // เซฟข้อมูลขึ้น Google Sheets
+        async function saveDataToCloud() {
+            const counter = document.getElementById('recordCounter');
+            const originalText = counter.innerText;
+            counter.innerText = "กำลังซิงค์ข้อมูลขึ้น Cloud...";
+            counter.style.background = "#fffbeb"; // เปลี่ยนสีเป็นแจ้งเตือนว่ากำลังบันทึก
 
-                tempGridList.push({
-                    order: k.toString(),
-                    date: `${day} ธ.ค. 66`,
-                    opt: optOptions[(k - 1) % optOptions.length],
-                    time: `${(8 + (k % 12))}.${(10 + (k % 49))}`,
-                    name: cleanedName + (k > 12 ? ` (${k})` : ''),
-                    age: (18 + (k % 65)).toString(),
-                    hn: cleanedHn,
-                    dx: dxSample[(k - 1) % dxSample.length],
-                    rtNotifyT: k % 3 === 0 ? "6" : "0",
-                    rtNotifyS: k % 3 === 0 ? "4" : "0",
-                    rtScene: "",
-                    rtToHospT: k % 3 === 0 ? "12" : "0",
-                    rtToHospS: k % 3 === 0 ? "14" : "0",
-                    totalT: "",
-                    totalS: "",
-                    careBleed: k % 5 === 0 ? "ü" : "0",
-                    careSplint: k % 3 === 0 ? "ü" : "0",
-                    careCpr: k % 15 === 0 ? "ü" : "0",
-                    result: resultSample[(k - 1) % resultSample.length],
-                    triage: k % 4 === 0 ? "1" : ""
+            try {
+                if(!SCRIPT_URL || SCRIPT_URL.includes('ใส่_URL')) return;
+
+                const dataToSave = yearlyDatastore[currentYear][currentMonth] || [];
+                let response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'saveData',
+                        year: currentYear,
+                        month: currentMonth,
+                        data: dataToSave
+                    })
                 });
+                
+                let json = await response.json();
+                if (json.status !== 'success') {
+                    console.error("Save Error:", json.message);
+                    alert("เกิดข้อผิดพลาดในการบันทึกข้อมูลขึ้น Cloud");
+                }
+            } catch (error) {
+                console.error("Save Fetch Error:", error);
             }
-            yearlyDatastore["2566"]["12"] = tempGridList;
-            renderTable();
-            document.getElementById('hiOrder').value = yearlyDatastore[currentYear][currentMonth].length + 1;
+            renderTable(); // รีเฟรชตารางและสถานะให้กลับมาปกติ
+        }
+
+        function debouncedSaveData() {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                saveDataToCloud();
+            }, 1000); // ดีเลย์ 1 วินาทีหลังจากพิมพ์เสร็จเพื่อไม่ให้ยิง API ถี่เกินไป
+        }
+
+        async function handleFilterChange() {
+            currentYear = document.getElementById('yearSelect').value;
+            currentMonth = document.getElementById('monthSelect').value;
+            await fetchDataFromCloud();
         }
 
         function handleFileSelect(input) {
@@ -740,47 +773,57 @@
             document.getElementById('fileReadyBanner').style.display = 'flex';
         }
 
-        function processSelectedFile() {
+        async function processSelectedFile() {
             if (!selectedFileObject) {
                 alert('กรุณาเลือกไฟล์ก่อนครับ');
                 return;
             }
             
+            document.getElementById('processFileBtn').innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> กำลังประมวลผล...`;
+            document.getElementById('processFileBtn').disabled = true;
+
             const file = selectedFileObject;
             const extension = file.name.split('.').pop().toLowerCase();
 
             if (extension === 'xlsx' || extension === 'xls') {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = async function(e) {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, {type: 'array'});
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
                     const jsonData = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ""});
-                    parseRawData(jsonData);
+                    await parseRawData(jsonData);
+                    resetUploader();
                 };
                 reader.readAsArrayBuffer(file);
             } else if (extension === 'csv') {
                 Papa.parse(file, {
                     header: false,
                     skipEmptyLines: true,
-                    complete: function(results) {
-                        parseRawData(results.data);
+                    complete: async function(results) {
+                        await parseRawData(results.data);
+                        resetUploader();
                     }
                 });
             } else {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    parseTextDocumentData(e.target.result);
+                reader.onload = async function(e) {
+                    await parseTextDocumentData(e.target.result);
+                    resetUploader();
                 };
                 reader.readAsText(file, 'UTF-8');
             }
+        }
 
+        function resetUploader() {
             document.getElementById('fileReadyBanner').style.display = 'none';
             selectedFileObject = null;
             document.getElementById('fileInput').value = '';
+            document.getElementById('processFileBtn').innerHTML = `<i class="fa-solid fa-play"></i> กดอ่านไฟล์และนำเข้าข้อมูล`;
+            document.getElementById('processFileBtn').disabled = false;
         }
 
-        function parseTextDocumentData(textContent) {
+        async function parseTextDocumentData(textContent) {
             let tempGridList = [];
             let parsedCount = 0;
             let normalizedText = textContent.replace(/\r?\n/g, ' ').replace(/\s+/g, ' ');
@@ -800,27 +843,10 @@
                 });
             }
 
-            if (parsedCount === 0) {
-                let lines = textContent.split('\n');
-                for (let i = 0; i < lines.length; i++) {
-                    let line = lines[i].trim();
-                    if (!line) continue;
-                    if (line.includes('HN:')) {
-                        parsedCount++;
-                        let namePart = line.split('(HN:')[0].replace(/^\d+\.\s*/, '').trim();
-                        let hnPart = line.split('(HN:')[1].replace(')', '').trim();
-                        tempGridList.push({
-                            order: parsedCount.toString(), date: "", opt: "มาเอง", time: "", name: namePart, age: "", hn: hnPart, dx: "ไม่ระบุ",
-                            rtNotifyT: '0', rtNotifyS: '0', rtScene: '', rtToHospT: '0', rtToHospS: '0', totalT: '', totalS: '',
-                            careBleed: '0', careSplint: '0', careCpr: '0', result: 'ไม่ระบุ', triage: ''
-                        });
-                    }
-                }
-            }
-
             if (parsedCount > 0) {
                 yearlyDatastore[currentYear][currentMonth] = tempGridList;
                 renderTable();
+                await saveDataToCloud(); // ซิงค์ขึ้น Cloud ทันที
                 alert(`[สำเร็จ] นำเข้าไฟล์รายชื่อคนไข้เรียบร้อย ${parsedCount} รายการ ลงสู่ระบบของ เดือน${monthNamesTh[currentMonth]} พ.ศ. ${currentYear}`);
             } else {
                 alert(`[แจ้งเตือน] ไม่พบรูปแบบโครงสร้างข้อมูลที่ถูกต้องในไฟล์ข้อความครับ`);
@@ -828,7 +854,7 @@
             document.getElementById('hiOrder').value = yearlyDatastore[currentYear][currentMonth].length + 1;
         }
 
-        function parseRawData(rows) {
+        async function parseRawData(rows) {
             let tempGridList = [];
             let parsedCount = 0;
 
@@ -875,7 +901,8 @@
             if (parsedCount > 0) {
                 yearlyDatastore[currentYear][currentMonth] = tempGridList;
                 renderTable();
-                alert(`[สำเร็จ] โหลดข้อมูล ${parsedCount} รายการ ลงตารางเดือน${monthNamesTh[currentMonth]} พ.ศ. ${currentYear} เรียบร้อยแล้ว`);
+                await saveDataToCloud(); // ซิงค์ขึ้น Cloud ทันที
+                alert(`[สำเร็จ] โหลดข้อมูล ${parsedCount} รายการ ลงตารางเดือน${monthNamesTh[currentMonth]} พ.ศ. ${currentYear} และบันทึกขึ้น Cloud เรียบร้อยแล้ว`);
             } else {
                 alert(`[แจ้งเตือน] ไม่พบแถวข้อมูลใหม่ในตารางไฟล์นำเข้า`);
             }
@@ -886,22 +913,25 @@
             if (yearlyDatastore[currentYear] && yearlyDatastore[currentYear][currentMonth] && yearlyDatastore[currentYear][currentMonth][index]) {
                 yearlyDatastore[currentYear][currentMonth][index][field] = value;
                 calculateTableSummary(); 
+                debouncedSaveData(); // เซฟอัตโนมัติเมื่อพิมพ์เสร็จ
             }
         }
 
-        function deleteRecord(index) {
+        async function deleteRecord(index) {
             if (confirm(`คุณต้องการลบรายชื่อคนไข้ ลำดับที่ ${yearlyDatastore[currentYear][currentMonth][index].order} ใช่หรือไม่?`)) {
                 yearlyDatastore[currentYear][currentMonth].splice(index, 1);
                 renderTable();
                 document.getElementById('hiOrder').value = yearlyDatastore[currentYear][currentMonth].length + 1;
+                await saveDataToCloud(); // ซิงค์ลบจาก Cloud ทันที
             }
         }
 
-        function clearAllRecords() {
-            if (confirm(`คุณต้องการล้างข้อมูลคนไข้ทั้งหมดประจำเดือน ${monthNamesTh[currentMonth]} พ.ศ. ${currentYear} ใช่หรือไม่?`)) {
+        async function clearAllRecords() {
+            if (confirm(`คุณต้องการล้างข้อมูลคนไข้ทั้งหมดประจำเดือน ${monthNamesTh[currentMonth]} พ.ศ. ${currentYear} ใช่หรือไม่? (ข้อมูลจะถูกลบออกจาก Cloud ด้วย)`)) {
                 yearlyDatastore[currentYear][currentMonth] = [];
                 renderTable();
                 document.getElementById('hiOrder').value = 1;
+                await saveDataToCloud(); // ซิงค์ล้างข้อมูลบน Cloud ทันที
             }
         }
 
@@ -994,7 +1024,8 @@
             const activeList = yearlyDatastore[currentYear][currentMonth] || [];
             
             tbody.innerHTML = '';
-            counter.innerText = `ประจำเดือน: ${monthNamesTh[currentMonth]} ${currentYear} | จำนวน: ${activeList.length} ราย`;
+            counter.innerText = `สถานะข้อมูล: อัปเดตล่าสุด | ประจำเดือน: ${monthNamesTh[currentMonth]} ${currentYear} | จำนวน: ${activeList.length} ราย`;
+            counter.style.background = "#ffe4e6";
             
             if (activeList.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="21" style="text-align:center; color:#64748b; padding:40px;">ไม่มีข้อมูลรายงาน ER ในเดือน${monthNamesTh[currentMonth]} พ.ศ. ${currentYear} สามารถกรอกเพิ่มหรือนำเข้าไฟล์ได้เลยครับ</td></tr>`;
@@ -1058,8 +1089,12 @@
             calculateTableSummary();
         }
 
-        function manualAddRecord(e) {
+        async function manualAddRecord(e) {
             e.preventDefault();
+            const btnSubmit = e.target.querySelector('button[type="submit"]');
+            const originalBtnHtml = btnSubmit.innerHTML;
+            btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึก...`;
+            btnSubmit.disabled = true;
             
             const newRecord = {
                 order: document.getElementById('hiOrder').value,
@@ -1094,7 +1129,10 @@
             document.getElementById('hiOpt').value = savedOpt;
             document.getElementById('hiOrder').value = yearlyDatastore[currentYear][currentMonth].length + 1;
             
-            alert(`บันทึกข้อมูลเรียบร้อยในรอบเดือน${monthNamesTh[currentMonth]} ปี พ.ศ. ${currentYear}`);
+            await saveDataToCloud(); // ซิงค์ขึ้น Cloud ทันที
+
+            btnSubmit.innerHTML = originalBtnHtml;
+            btnSubmit.disabled = false;
         }
 
         function exportToExcel() {
